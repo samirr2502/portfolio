@@ -1,0 +1,75 @@
+[
+{
+    "category":"Fun",
+    "name":"Startup",
+    "class":"",
+    "year":"2024",
+    "startDate":"",
+    "endDate":"",
+    "webLink":"http://samirrodriguez.click/",
+    "githubRep":"https://github.com/samirr2502/startup",
+    "tags":["fun","database","api","httpService","webApp"],
+    "languages":["typescript","react","javascript","sql"]
+},
+
+{
+    "category":"Fall 2025",
+    "name":"JWT Pizza",
+    "class":"CS393",
+    "year":"2025",
+    "startDate":"09/01/2025",
+    "endDate":"",
+    "webLink":"http://pizza.samirrodriguez.click/",
+    "githubRep":"https://github.com/samirr2502/jwt-pizza",
+    "tags":["fun","JWT","database","api","httpService","webApp"],
+    "languages":["typescript","react","javascript","sql"]
+},
+{
+    "category":"Fall 2024",
+    "name":"Chess Game",
+    "class":"CS240",
+    "year":"2024",
+    "startDate":"09/01/2024",
+    "endDate":"",
+    "webLink":"http://chess.samirrodriguez.click/",
+    "githubRep":"https://github.com/samirr2502/chess",
+    "tags":["fun","class","database","api","httpService","webApp","terminalApp"],
+    "languages":["java","html","javascript","sql"]
+},
+{
+    "category":"Tool",
+    "name":"Box Collab",
+    "class":"",
+    "year":"2024",
+    "startDate":"09/01/2024",
+    "endDate":"",
+    "webLink":"http://boxCollab.samirrodriguez.click/",
+    "githubRep":"https://github.com/samirr2502/boxCollab",
+    "tags":["fun","database","api","httpService","webApp"],
+    "languages":["typescript","react","javascript","sql"]
+},
+{
+    "category":"Tool",
+    "name":"Box Collab2",
+    "class":"",
+    "year":"2024",
+    "startDate":"09/01/2024",
+    "endDate":"",
+    "webLink":"http://boxCollab.samirrodriguez.click/",
+    "githubRep":"https://github.com/samirr2502/boxCollab",
+    "tags":["fun","database","api","httpService","webApp"],
+    "languages":["python3","typescript","react","javascript","sql"]
+},
+{
+    "category":"Winter 2025",
+    "name":"Dataquery interpreter",
+    "class":"",
+    "year":"2025",
+    "startDate":"01/06/2025",
+    "endDate":"",
+    "webLink":"http://interpreter.samirrodriguez.click/",
+    "githubRep":"https://github.com/samirr2502/interpreter",
+    "tags":["class","datastructures","algorithms","application"],
+    "languages":["python3","json"]
+}
+]
