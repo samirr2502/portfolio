@@ -2,7 +2,6 @@ import React  from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { useEffect, useState } from 'react';
 
-import './App.css'
 
 import Header from './snippets/header'
 import Footer from './snippets/footer'
@@ -15,20 +14,35 @@ import Login from './admin/pages/login'
 function App() {
   const [authenticated,setAuthenticated] = useState(false);
   return (
-    <div className='body'>
-      <Header className="header"/>
-        <main className="main">
+    <div className="body bg-[var(--bg-dark)] text-[var(--text-light)] min-h-screen flex flex-col">
+      
+      {/* Header */}
+        <Header />
+      
+
+      {/* Main Content */}
+      <main className="main flex-1 overflow-y-auto p-4">
         <Routes>
-            <Route path={"/"} element={<Home />} />
-            <Route path={"/personal"} element={<Personal />} />
-            <Route path={"/school"} element={<School />} />
-            <Route path={"/admin"} element={ authenticated && <Admin setAuthenticated={setAuthenticated}/>
-            || <Login authenticated = {authenticated} setAuthenticated={setAuthenticated}/>
-          }/>
-            <Route path={"*"} element={<div>Not Found</div>}/>
+          <Route path="/" element={<Home />} />
+          <Route path="/personal" element={<Personal />} />
+          <Route path="/school" element={<School />} />
+          <Route
+            path="/admin"
+            element={
+              authenticated ? (
+                <Admin setAuthenticated={setAuthenticated} />
+              ) : (
+                <Login authenticated={authenticated} setAuthenticated={setAuthenticated} />
+              )
+            }
+          />
+          <Route path="*" element={<div className="text-center mt-8">Not Found</div>} />
         </Routes>
       </main>
-        <Footer className="footer"/>
+
+      {/* Footer */}
+        <Footer />
+
     </div>
   )
 }

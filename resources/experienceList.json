@@ -1,0 +1,20 @@
+[
+{
+    "position":"FullStack WebDeveloper",
+    "description":"Led Developer's team in maintaining and creating new features for the main Office Data Support Tool of the Office of First Year Experience",
+    "tools":["Mendix", "Scrum","Agile","PostgresSQL","Git","SMTP","websockets","api"],
+    "languanges":["SQL","java","typescript"],
+    "startDate":"Jun 2024",
+    "endDate":"Current"
+},
+
+{
+    "position":"Research A. & Data Analyst",
+    "description":"Led Tech projects that impacted students confidence in their first semester by researching, cleaning data, creating graphs, reports and tracking systems for hundreds of Mentors and Thousands of Students",
+    "tools":["Excel","Qualtrix", "Tableau"],
+    "languanges":["typescript"],
+    "startDate":"Jun 2024",
+    "endDate":"Current"
+}
+
+]

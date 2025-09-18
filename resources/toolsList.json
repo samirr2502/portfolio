@@ -1,0 +1,52 @@
+[
+{
+    "position":"aws",
+    "description":"<i class='devicon-amazonwebservices-plain-wordmark'></i>"
+},
+
+{
+    "position":"Typescript",
+    "description":"<i class='devicon-typescript-plain'></i>"
+},
+{
+    "position":"React",
+    "description":"<i class='devicon-react-original'></i>"
+},
+
+{
+    "position":"JavaScript",
+    "description":"<i class='devicon-javascript-plain'></i>"
+},
+
+{
+    "position":"Python",
+    "description":"<i class='devicon-python-plain'></i>"
+},
+
+{
+    "position":"MySQL",
+    "description":"<i class='devicon-mysql-original'></i>"
+},
+{
+    "position":"Nodejs",
+    "description":"<i class='devicon-nodejs-plain'></i>"
+},
+{
+    "position":"java",
+    "description":"<i class='devicon-java-plain'></i>"
+},
+
+{
+    "position":"flask",
+    "description":"<i class='devicon-flask-original'></i>"
+},
+{
+    "position":"mongodb",
+    "description":"<i class='devicon-mongodb-plain'></i>"
+},
+{
+    "position":"json",
+    "description":"<i class='devicon-json-plain'></i>"
+}
+
+]

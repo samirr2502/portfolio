@@ -1,16 +1,24 @@
 import ProjectsGroup from '../components/projectsGroups'
+import projects from "../../resources/projectList.json"
 
 
 function Personal(){
-    const categories = ["Fun","Tool"];
+    // const categories = ["Fun","Tool"];
+    
 
+    
     return (
         <div className="personalProjects">
-     <h1>Personal projects</h1>
-     <div className='cards'>
-       {categories.map((item,index)=>(<ProjectsGroup key={item} groupTitle={categories[index]}/>))}
-       </div>
+        <div className="sectionHeader">
+          <h1 className="sectionTitle">Personal Projects</h1>
         </div>
+        <div className="cardsGrid">
+          {projects.map((item,index) => (
+            <ProjectsGroup key={index} item={item} />
+          ))}
+        </div>
+      </div>
+      
     )
 }
 
