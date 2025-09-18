@@ -1,0 +1,22 @@
+[
+    {
+        "id":"aboutme",
+        "title":"About Me",
+        "info":"I'm from the beautiful island in the Caribbean Dominican Republic. I'm passionate about its culture and specially food! With not a lot of income, my parents got a PC when I was young. and I built my first game in GameMaker engine for Windows Xp when I was around 12 and I loved it! I love to develop usuful tools, manage projects and work hard until I get the job done."
+    },
+    {
+        "id":"company",
+        "title":"SR2",
+        "info":"Samir Emmanuel Rodriguez Rodriguez... Yes! 2 Rodriguez-es. So hence the SR(2) [ez-ar Squared]. ",
+        "info2":"This is my dream Software Development company. For now, just free-lancing and getting experience everywhere I go."
+    },
+    {
+        "id":"contact",
+        "title":"Contact",
+        "phone":"Phone: (541)-656-0636",
+        "email":"samirrodriguez14@gmail.com",
+        "github":"https://github.com/samirr2502",
+        "linkedin":"https://www.linkedin.com/in/samir-rodriguez2/"
+    }
+    
+]

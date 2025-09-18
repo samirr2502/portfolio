@@ -10,6 +10,7 @@ import Personal from './pages/personalProjects'
 import School from './pages/schoolProjects'
 import Admin from './admin/pages/admin'
 import Login from './admin/pages/login'
+import About from './pages/about';
 
 function App() {
   const [authenticated,setAuthenticated] = useState(false);
@@ -26,6 +27,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/personal" element={<Personal />} />
           <Route path="/school" element={<School />} />
+          <Route path="/about" element={<About />} />
+
           <Route
             path="/admin"
             element={

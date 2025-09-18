@@ -10,7 +10,7 @@ function Header() {
       <ul className="navLinks">
         <li><NavLink to="/">Home</NavLink></li>
         <li><NavLink to="/personal">Projects</NavLink></li>
-        {/* <li><NavLink to="/school">School</NavLink></li> */}
+        <li><NavLink to="/about">About</NavLink></li>
         {/* <li><NavLink to="/admin">Admin</NavLink></li> */}
       </ul>
     </nav>

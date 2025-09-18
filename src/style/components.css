@@ -30,13 +30,27 @@
     border-radius: var(--radius-md);
 
   }
+  
 }
+.groupCard:has(.contact) {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  flex: 0 0 600px;
+  max-width: 600px;
+}
+.groupCard:has(.resumeGroups) {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  max-width: 400px;
 
+}
 .groupHeader {
   margin-bottom: var(--space-sm);
   display: flex;
   gap: var(--space-lg);
-
+  color: var(--text-muted);
 }
 
 .groupTitle {
@@ -64,6 +78,19 @@
   width:80%;
 
 }
+
+.contact, .contact >*  {
+  justify-items: center;
+  h3:hover{
+    color:var(--text-light);
+    cursor: pointer;
+  }
+
+}
+.aboutme, .company {
+  width: 100%;
+}
+
 /* Project List */
 
 .projectItem {
