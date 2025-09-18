@@ -9,9 +9,11 @@ function Home(){
 
     return (
         <>
+        <span className="homeMessage">
      <h1>Hi, I'm Samir Rodriguez</h1>
      <h3>Web Developer & Software Engineer</h3>
      <span> <i className="icon-sm">Senior Computer Science Major at BYU-Provo</i></span>
+     </span>
      <h2>Experience:</h2>
      <div className="cardsGrid">
 
@@ -24,7 +26,7 @@ function Home(){
      
      
 </div>
-<h2>Tools:</h2>
+<h2>Tools & Languages:</h2>
 <div className="cardsGrid toolsGroups">
 
      {tools.map((tool)=>(<ToolsGroup item={tool}/>))}

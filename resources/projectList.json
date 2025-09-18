@@ -33,6 +33,7 @@
         "githubRep": "https://github.com/samirr2502/startup",
         "tags": [
             "fun",
+            "CS-260",
             "database",
             "api",
             "httpService",
@@ -47,14 +48,14 @@
     {
         "category": "Fall 2025",
         "name": "JWT Pizza",
-        "class": "CS393",
+        "class": "CS-393",
         "year": "2025",
         "startDate": "09/01/2025",
         "endDate": "",
         "webLink": "http://pizza.samirrodriguez.click/",
         "githubRep": "https://github.com/samirr2502/jwt-pizza",
         "tags": [
-            "CS329",
+            "CS-329",
             "fun",
             "JWT",
             "database",
@@ -72,7 +73,7 @@
     {
         "category": "Fall 2024",
         "name": "Chess Game",
-        "class": "CS240",
+        "class": "CS-240",
         "year": "2024",
         "startDate": "09/01/2024",
         "endDate": "",
@@ -80,7 +81,7 @@
         "githubRep": "https://github.com/samirr2502/chess",
         "tags": [
             "fun",
-            "class",
+            "CS-240",
             "database",
             "api",
             "httpService",
@@ -104,6 +105,7 @@
         "webLink": "http://interpreter.samirrodriguez.click/",
         "githubRep": "https://github.com/samirr2502/interpreter",
         "tags": [
+            "CS-236",
             "class",
             "datastructures",
             "algorithms",

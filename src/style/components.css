@@ -1,6 +1,7 @@
-.sectionHeader{
+.sectionHeader, .homeMessage{
   text-align: center;
 }
+
 /* Cards Grid */
 .cardsGrid {
   display: flex;
@@ -36,8 +37,8 @@
   background-color: var(--bg-card);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  flex: 0 0 600px;
-  max-width: 600px;
+  flex: 0 0 700px;
+  max-width: 700px;
 }
 .groupCard:has(.resumeGroups) {
   background-color: var(--bg-card);
@@ -119,4 +120,14 @@
 
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
+}
+
+@media screen and (max-width:750px) {
+  .groupCard:has(.contact) {
+    background-color: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    flex: 0 0 400px;
+    max-width: 100%;
+  }
 }
