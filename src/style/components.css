@@ -127,7 +127,7 @@
     background-color: var(--bg-card);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
-    flex: 0 0 400px;
+    flex: 0 0 350px;
     max-width: 100%;
   }
 }
