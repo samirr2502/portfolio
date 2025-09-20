@@ -7,9 +7,9 @@ function ProjectsGroup({item}){
         <div className="groupCard">
           <div className="groupHeader">
             <h2 className="groupTitle">{item.name}</h2>
-             <a href={item.githubRep} target="_blank"><FaGithub/> </a>
+            {item.githubRep && <a href={item.githubRep} target="_blank"><FaGithub/> </a>}
             
-                    <a href ={item.webLink} target="_blank"><FaExternalLinkAlt/></a>
+                   { item.webLink && <a href ={item.webLink} target="_blank"><FaExternalLinkAlt/></a>}
           </div>
           <div className="groupBody projectItem">
      <span className="tags ">{item.tags.map((item)=><span className="item">{item} </span>)}</span>
