@@ -29,9 +29,13 @@ jobs:
 
       - name: Build project
         run: npm run build
+      # Step 5: Copy index.html to 404.html for GitHub Pages routing
+      - name: Fix client-side routing on refresh
+        run: cp build/index.html build/404.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist  # or ./dist if using Vite
+        
