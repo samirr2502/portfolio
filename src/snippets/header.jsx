@@ -8,9 +8,9 @@ function Header() {
 
       {/* Navigation */}
       <ul className="navLinks">
-        <li><NavLink to="portfolio/">Home</NavLink></li>
-        <li><NavLink to="portfolio/personal">Projects</NavLink></li>
-        <li><NavLink to="portfolio/about">About</NavLink></li>
+        <li><NavLink to="/">Home</NavLink></li>
+        <li><NavLink to="/personal">Projects</NavLink></li>
+        <li><NavLink to="/about">About</NavLink></li>
         {/* <li><NavLink to="/admin">Admin</NavLink></li> */}
       </ul>
     </nav>

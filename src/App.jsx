@@ -24,11 +24,11 @@ function App() {
       {/* Main Content */}
       <main className="main flex-1 overflow-y-auto p-4">
         <Routes>
-          <Route path="portfoloio/" element={<Home />} />
-          <Route path="portfoloio/personal" element={<Personal />} />
-          <Route path="portfoloio/school" element={<School />} />
-          <Route path="portfoloio/about" element={<About />} />
-          <Route path="portfoloio/*" element={<Home />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/personal" element={<Personal />} />
+          <Route path="/school" element={<School />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/*" element={<Home />} />
 
           <Route
             path="/admin"
