@@ -1,36 +1,31 @@
-name: Deploy to GitHub Pages
+    name: Deploy to GitHub Pages
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch: {}
+    on:
+      push:
+        branches:
+          - main # Or your main branch name
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          # Do not persist credentials so the deploy step can use the action token
-          persist-credentials: false
+    jobs:
+      build-and-deploy:
+        runs-on: ubuntu-latest
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: npm ci
+          - name: Set up Node.js
+            uses: actions/setup-node@v4
+            with:
+              node-version: '20' # Or your desired Node.js version
 
-      - name: Build
-        run: npm run build --if-present
+          - name: Install dependencies
+            run: npm install
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          publish_branch: gh-pages
+          - name: Build project
+            run: npm run build
+
+          - name: Deploy to GitHub Pages
+            uses: peaceiris/actions-gh-pages@v4
+            with:
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              publish_dir: ./dist # The output directory of your Vite build
