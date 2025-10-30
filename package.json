@@ -1,7 +1,7 @@
 {
-    "homepage": "https://samirr2502.github.io/portfolio/",
+    "homepage": "https://samirr2502.github.io/portfolio",
 
-  "name": "sr2portfolio",
+  "name": "portfolio",
   "private": true,
   "version": "0.0.0",
   "type": "module",
