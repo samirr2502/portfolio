@@ -93,7 +93,7 @@
         "year": "2025",
         "startDate": "09/01/2025",
         "endDate": "",
-        "webLink": "http://pizza.samirrodriguez.click/",
+        "webLink": false,
         "githubRep": "https://github.com/samirr2502/jwt-pizza",
         "tags": [
             "CS-329",
