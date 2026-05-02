@@ -1,5 +1,53 @@
 [
     {
+        "category": "Apple App",
+        "name": "Dominican Casino",
+        "class": "",
+        "year": "2026",
+        "startDate": "01/06/2026",
+        "endDate": "",
+        "webLink": "",
+        "githubRep": "https://github.com/bvanitem/elavare",
+        "tags": [
+            "fun",
+            "game",
+            "apple",
+            "firestore",
+            "card game"
+        ],
+        "languages": [
+            "<i class='devicon-react-original icon-sm'></i> react",
+            "<i class='devicon-apple-original icon-sm'></i> apple",
+            "<i class='devicon-javascript-plain icon-sm'></i> javascript",
+            "<i class='devicon-python-plain icon-sm'></i> python",
+            "<i class='devicon-flask-original icon-sm'></i> Flask"
+        ]
+    },
+    {
+        "category": "Apple App",
+        "name": "Elavare",
+        "class": "CS Capstone",
+        "year": "2026",
+        "startDate": "01/06/2026",
+        "endDate": "",
+        "webLink": "",
+        "githubRep": "https://github.com/bvanitem/elavare",
+        "tags": [
+            "tool",
+            "apple",
+            "api",
+            "httpService",
+            "webApp"
+        ],
+        "languages": [
+            "<i class='devicon-react-original icon-sm'></i> react",
+            "<i class='devicon-apple-original icon-sm'></i> apple",
+            "<i class='devicon-javascript-plain icon-sm'></i> javascript",
+            "<i class='devicon-python-plain icon-sm'></i> python",
+            "<i class='devicon-flask-original icon-sm'></i> Flask"
+        ]
+    },
+    {
         "category": "Tool",
         "name": "Box Collab",
         "class": "",
@@ -22,7 +70,6 @@
             "<i class='devicon-flask-original icon-sm'></i> Flask"
         ]
     },
-    
     {
         "category": "Game",
         "name": "Spot the song",
@@ -31,7 +78,7 @@
         "startDate": "09/20/2025",
         "endDate": "",
         "webLink": "",
-        "githubRep":"https://github.com/samirr2502/spot-the-song",
+        "githubRep": "https://github.com/samirr2502/spot-the-song",
         "tags": [
             "fun",
             "game",
@@ -43,12 +90,10 @@
         "languages": [
             "<i class='devicon-react-plain icon-sm'></i> react",
             "<i class='devicon-typescript-plain icon-sm'></i> typescript",
-
             "<i class='devicon-json-plain icon-sm'></i> json",
             "<i class='devicon-mysql-original icon-sm'></i> sql"
         ]
     },
-   
     {
         "category": "Fall 2025",
         "name": "JWT Pizza",
