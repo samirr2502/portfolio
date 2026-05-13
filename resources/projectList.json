@@ -1,9 +1,18 @@
 [
     {
-        "category": "Apple App",
+        "category": "Apple App (Personal)",
         "name": "Dominican Casino",
+        "description": "A premium Flutter card-game experience for iOS, featuring a polished mobile UI, Firestore-backed save data, and casino-style interaction previews.",
+        "images": [
+            "/images/dominican-casino/dc_02.PNG",
+            "/images/dominican-casino/dc_03.PNG",
+            "/images/dominican-casino/dc_04.PNG",
+            "/images/dominican-casino/dc_05.PNG",
+            "/images/dominican-casino/dc_06.PNG"
+        ],
         "class": "",
         "year": "2026",
+        "featured": true,
         "startDate": "01/06/2026",
         "endDate": "",
         "webLink": "",
@@ -20,10 +29,17 @@
         ]
     },
     {
-        "category": "Apple App",
+        "category": "Apple App (Capstone)",
         "name": "Elavare",
         "class": "CS Capstone",
         "year": "2026",
+        "featured": true,
+        "images": [
+            "/images/elavare/el_01.PNG",
+            "/images/elavare/el_02.PNG",
+            "/images/elavare/el_03.PNG",
+            "/images/elavare/el_04.PNG"
+        ],
         "startDate": "01/06/2026",
         "endDate": "",
         "webLink": "",
@@ -40,9 +56,10 @@
         ]
     },
     {
-        "category": "Tool",
+        "category": "Web App (Tool)",
         "name": "Box Collab",
         "class": "",
+        "featured": true,
         "year": "2024",
         "startDate": "09/01/2024",
         "endDate": "",
@@ -67,6 +84,7 @@
         "name": "Spot the song",
         "class": "",
         "year": "2025",
+        "featured": false,
         "startDate": "09/20/2025",
         "endDate": "",
         "webLink": "",
@@ -87,10 +105,11 @@
         ]
     },
     {
-        "category": "Fall 2025",
+        "category": "Web App (Class)",
         "name": "JWT Pizza",
         "class": "CS-393",
         "year": "2025",
+        "featured": false,
         "startDate": "09/01/2025",
         "endDate": "",
         "webLink": false,
@@ -118,6 +137,7 @@
         "year": "2024",
         "startDate": "",
         "endDate": "",
+        "featured": false,
         "webLink": false,
         "githubRep": "https://github.com/samirr2502/startup",
         "tags": [
