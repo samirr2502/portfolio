@@ -92,15 +92,6 @@ function HeroStage({ featured }) {
           <button type="button" className="btnOutline btnSm" onClick={() => scrollDeckTo("experience")}>
             Experience
           </button>
-          <a
-            className="btnOutline btnSm"
-            href="https://status.samirrodriguez.click"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Status
-            <span className="statusPulse" aria-hidden="true" />
-          </a>
           <ContactIconLinks variant="hero" />
         </div>
       </div>

@@ -1025,6 +1025,10 @@ html:not(.theme-light) .projectTileInitials {
   transition: top 0.32s ease, bottom 0.32s ease;
 }
 
+.askSamirChat.has-transcript {
+  justify-content: flex-end;
+}
+
 .askSamirChat.is-expanded {
   top: auto;
   bottom: 2.25rem;
@@ -1039,10 +1043,13 @@ html:not(.theme-light) .projectTileInitials {
 }
 
 .askSamirAnswer {
-  max-height: 10.5rem;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: min(32vh, 16rem);
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
+  touch-action: pan-y;
   display: flex;
   flex-direction: column;
   padding: 0.85rem 0.15rem 0.5rem;
@@ -1066,14 +1073,17 @@ html:not(.theme-light) .projectTileInitials {
   );
 }
 
+.askSamirChat.has-transcript .askSamirAnswer {
+  flex: 1 1 auto;
+}
+
 .askSamirAnswerInner {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   gap: 0.45rem;
-  min-height: 100%;
   width: 100%;
   margin-top: auto;
+  flex-shrink: 0;
 }
 
 .askSamirMessage {
@@ -1097,6 +1107,78 @@ html:not(.theme-light) .projectTileInitials {
 
 .askSamirMessage.is-assistant {
   color: var(--text-light);
+  max-width: 92%;
+}
+
+.askSamirMarkdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.askSamirMdHeading {
+  margin: 0 0 0.15rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: var(--lab-accent);
+}
+
+.askSamirMdSubheading {
+  margin: 0.1rem 0 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-light);
+}
+
+.askSamirMdParagraph {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--text-light);
+}
+
+.askSamirMdParagraph + .askSamirMdHeading,
+.askSamirMdList + .askSamirMdHeading {
+  margin-top: 0.35rem;
+}
+
+.askSamirMdStrong {
+  font-weight: 650;
+  color: color-mix(in srgb, var(--text-light) 45%, #000);
+}
+
+html:not(.theme-light) .askSamirMdStrong {
+  color: color-mix(in srgb, var(--text-light) 70%, #fff);
+}
+
+.askSamirMdEm {
+  font-style: italic;
+  color: color-mix(in srgb, var(--text-light) 88%, var(--lab-accent));
+}
+
+.askSamirMdList {
+  margin: 0.1rem 0 0;
+  padding-left: 1.05rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.askSamirMdList.is-ordered {
+  padding-left: 1.2rem;
+}
+
+.askSamirMdListItem {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-light);
+}
+
+.askSamirMdListItem::marker {
+  color: var(--lab-accent);
 }
 
 .askSamirMessage.is-error {
@@ -1124,6 +1206,15 @@ html:not(.theme-light) .projectTileInitials {
   font-size: 0.78rem;
   line-height: 1.5;
   color: var(--text-light);
+}
+
+.askSamirMessage.is-assistant .askSamirLimitContact,
+.askSamirMessage.is-error .askSamirLimitContact {
+  margin-top: 0.45rem;
+}
+
+.askSamirPlainText {
+  margin: 0;
 }
 
 .askSamirLimitContact {
@@ -1226,7 +1317,29 @@ html:not(.theme-light) .projectTileInitials {
   cursor: wait;
 }
 
+.askSamirInputWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding-top: 0.15rem;
+}
+
+.askSamirInputWrap::before {
+  content: "";
+  position: absolute;
+  top: -1.5rem;
+  left: 0;
+  right: 0;
+  height: 1.5rem;
+}
+
 .askSamirExpand {
+  position: absolute;
+  top: -1.35rem;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 2;
   appearance: none;
   display: inline-flex;
   align-items: center;
@@ -1237,18 +1350,32 @@ html:not(.theme-light) .projectTileInitials {
   padding: 0.15rem;
   cursor: pointer;
   line-height: 1;
-  transition: color 0.15s ease, transform 0.15s ease;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    visibility 0.18s ease,
+    color 0.15s ease,
+    translate 0.15s ease;
+}
+
+.askSamirInputWrap:hover .askSamirExpand,
+.askSamirInputWrap:focus-within .askSamirExpand {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .askSamirExpand:hover {
   color: var(--lab-accent);
-  transform: translateY(-1px);
+  translate: -50% -1px;
 }
 
 .askSamirChat.is-expanded .askSamirAnswer {
   flex: 1 1 auto;
+  min-height: 0;
   height: min(72vh, 680px);
-  min-height: 12rem;
   max-height: min(72vh, 680px);
   -webkit-mask-image: linear-gradient(
     to bottom,
@@ -2675,13 +2802,13 @@ html:not(.theme-light) .projectTileInitials {
   }
 
   .askSamirChat.is-expanded .askSamirAnswer {
+    min-height: 0;
     height: min(66vh, 580px);
     max-height: min(66vh, 580px);
-    min-height: 10rem;
   }
 
   .askSamirAnswer {
-    max-height: 8.5rem;
+    max-height: min(30vh, 14rem);
   }
 
   .askSamirPlaceholder {

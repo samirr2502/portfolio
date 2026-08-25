@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 
 dbconfig.*
+
+# Env & secrets
+.env
+.env.local
+server/.env
+server/node_modules

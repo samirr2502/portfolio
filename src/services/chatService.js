@@ -1,90 +1,96 @@
 /**
- * Mock chat backend. Swap this module for a real API later
- * (e.g. fetch("/api/chat", { method: "POST", body: JSON.stringify({ question }) })).
+ * Ask Samir chat client — talks to the portfolio API (/api/chat).
+ * In dev, Vite proxies /api to the local server (see vite.config.js).
  */
 
 import about from "../../resources/aboutLists.json";
 
-const MOCK_LATENCY_MS = { min: 480, max: 1100 };
 export const MESSAGE_LIMIT = 25;
 export const CHAR_LIMIT = 3000;
-const USAGE_STORAGE_KEY = "askSamir.mockIpUsage.v1";
+
+const API_BASE = import.meta.env.VITE_CHAT_API_URL || "";
+const CHAT_STORAGE_KEY = "askSamir.transcript.v1";
+const PERSISTED_ROLES = new Set(["user", "assistant", "limit", "error"]);
 
 const contact = about.find((item) => item.id === "contact") || {};
 const CONTACT_PHONE = "(541) 656-0636";
 const CONTACT_EMAIL = contact.email || "samirrodriguez14@gmail.com";
 const CONTACT_TEL = "+15416560636";
 
-const NONSENSE_REPLIES = [
-  "In this timeline Samir once taught a load balancer to juggle oranges while shipping a deploy at 2am. Hire him before the oranges unionize.",
-  "Confidential recruiter brief: Samir's commit history contains three secret vegetables and one unusually calm production incident. Recommend interview, bring snacks.",
-  "Analysis complete. Probability Samir is a great hire: 94%. Probability this answer is serious: 0%. Probability you should ask again later: high.",
-  "Samir builds systems the way raccoons build nests — surprisingly structured, slightly chaotic, and somehow everything still runs. That is a compliment.",
-  "According to the mock oracle, Samir once reduced latency by whispering politely to EC2. True story. Definitely. Do not fact-check.",
-  "Hiring tip from nonsense HQ: Samir ships live apps, owns the infra, and still finds time to rename folders until they feel right. Elite energy.",
-  "Status report: question received. Meaning decoded. Answer fabricated from spare YAML and leftover coffee. Samir remains an excellent option.",
-  "If your company needs someone who can wire ClearView-scale features and keep personal servers healthy, Samir is the plot twist you wanted.",
-];
+let cachedUsage = { used: 0, remaining: MESSAGE_LIMIT, limit: MESSAGE_LIMIT, limited: false };
 
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+async function apiFetch(path, options) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: { "Content-Type": "application/json", ...(options?.headers || {}) },
+    ...options,
+  });
 
-function pickReply(question) {
-  const seed = String(question || "")
-    .split("")
-    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  return NONSENSE_REPLIES[seed % NONSENSE_REPLIES.length];
-}
-
-function monthKey(date = new Date()) {
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-function readUsage() {
+  let payload = null;
   try {
-    const raw = window.localStorage.getItem(USAGE_STORAGE_KEY);
-    if (!raw) return { month: monthKey(), count: 0 };
-    const parsed = JSON.parse(raw);
-    if (!parsed || parsed.month !== monthKey()) {
-      return { month: monthKey(), count: 0 };
-    }
-    return { month: parsed.month, count: Number(parsed.count) || 0 };
+    payload = await response.json();
   } catch {
-    return { month: monthKey(), count: 0 };
+    payload = null;
   }
+
+  if (!response.ok) {
+    throw new Error(payload?.error || "Something went wrong reaching the chat service.");
+  }
+
+  return payload;
 }
 
-function writeUsage(count) {
-  const next = { month: monthKey(), count };
-  window.localStorage.setItem(USAGE_STORAGE_KEY, JSON.stringify(next));
-  return next;
+function syncUsage(payload) {
+  if (typeof payload?.used !== "number") return cachedUsage;
+  cachedUsage = {
+    used: payload.used,
+    remaining:
+      typeof payload.remaining === "number"
+        ? payload.remaining
+        : Math.max(0, MESSAGE_LIMIT - payload.used),
+    limit: payload.limit ?? MESSAGE_LIMIT,
+    limited: Boolean(payload.limited ?? payload.used >= MESSAGE_LIMIT),
+  };
+  return cachedUsage;
 }
 
-export function getMockUsage() {
-  return readUsage();
+/** Load current visitor quota from the API (IP-based on the server). */
+export async function refreshChatUsage() {
+  const payload = await apiFetch("/api/chat/usage");
+  return syncUsage(payload);
 }
 
 export function getUsedMessages() {
-  return readUsage().count;
+  return cachedUsage.used;
 }
 
 export function getRemainingMessages() {
-  return Math.max(0, MESSAGE_LIMIT - readUsage().count);
+  return cachedUsage.remaining;
 }
 
 export function isMockLimitReached() {
-  return getRemainingMessages() <= 0;
+  return cachedUsage.limited;
 }
 
-/** Testing helper — jump straight to the monthly cap. */
+/** Dev-only: server has no reset endpoint; fakes limit in the UI. */
 export function forceMockLimitHit() {
-  return writeUsage(MESSAGE_LIMIT);
+  cachedUsage = {
+    used: MESSAGE_LIMIT,
+    remaining: 0,
+    limit: MESSAGE_LIMIT,
+    limited: true,
+  };
+  return cachedUsage;
 }
 
-/** Testing helper — reset the mock monthly counter. */
+/** Dev-only: clears local cached quota (server IP limit unchanged until restart/month rollover). */
 export function resetMockUsage() {
-  return writeUsage(0);
+  cachedUsage = {
+    used: 0,
+    remaining: MESSAGE_LIMIT,
+    limit: MESSAGE_LIMIT,
+    limited: false,
+  };
+  return cachedUsage;
 }
 
 export function buildLimitReachedMessage() {
@@ -96,13 +102,100 @@ export function buildLimitReachedMessage() {
     email: CONTACT_EMAIL,
     telHref: `tel:${CONTACT_TEL}`,
     mailtoHref: `mailto:${CONTACT_EMAIL}`,
-    mock: true,
   };
+}
+
+/** True when a reply tells the visitor to reach out to Samir directly. */
+export function suggestsDirectContact(text) {
+  const normalized = String(text || "").toLowerCase();
+  return (
+    /contact\s+(samir|him)\b/.test(normalized) ||
+    /reach\s+out\s+(to\s+)?(samir|him)\b/.test(normalized) ||
+    /get\s+in\s+touch\s+with\s+samir/.test(normalized) ||
+    /contacting\s+samir/.test(normalized)
+  );
+}
+
+function normalizeStoredMessage(raw) {
+  if (!raw || typeof raw !== "object") return null;
+
+  const role = raw.role;
+  if (!PERSISTED_ROLES.has(role)) return null;
+
+  const text = String(raw.text || "").trim();
+  if (!text) return null;
+
+  const message = {
+    id: typeof raw.id === "string" ? raw.id : `msg-${Date.now()}`,
+    role,
+    text,
+  };
+
+  if (role === "limit") {
+    message.payload = {
+      ...buildLimitReachedMessage(),
+      ...(raw.payload && typeof raw.payload === "object" ? raw.payload : {}),
+      answer: text,
+    };
+  }
+
+  if (raw.suggestContact === true || suggestsDirectContact(text)) {
+    message.suggestContact = true;
+  }
+
+  return message;
+}
+
+/** Restore chat messages for this browser tab (survives refresh). */
+export function loadChatTranscript() {
+  try {
+    const raw = window.sessionStorage.getItem(CHAT_STORAGE_KEY);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.map(normalizeStoredMessage).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+/** Persist chat messages for this browser tab. */
+export function saveChatTranscript(messages) {
+  try {
+    if (!Array.isArray(messages) || messages.length === 0) {
+      window.sessionStorage.removeItem(CHAT_STORAGE_KEY);
+      return;
+    }
+
+    window.sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+  } catch {
+    /* storage full or unavailable */
+  }
+}
+
+export function clearChatTranscript() {
+  try {
+    window.sessionStorage.removeItem(CHAT_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Keep generated ids unique after restoring a saved transcript. */
+export function getHighestMessageSeq(messages) {
+  let max = 0;
+  for (const message of messages) {
+    const match = /^msg-(\d+)$/.exec(String(message?.id || ""));
+    if (match) max = Math.max(max, Number(match[1]));
+  }
+  return max;
 }
 
 /**
  * @param {string} question
- * @returns {Promise<{ answer: string, mock: true, limited?: boolean, phone?: string, email?: string, telHref?: string, mailtoHref?: string }>}
+ * @returns {Promise<{ answer: string, used?: number, limited?: boolean, phone?: string, email?: string, telHref?: string, mailtoHref?: string }>}
  */
 export async function askAboutSamir(question) {
   const trimmed = String(question || "").trim();
@@ -114,22 +207,24 @@ export async function askAboutSamir(question) {
     throw new Error(`Keep it under ${CHAR_LIMIT.toLocaleString()} characters.`);
   }
 
-  const wait =
-    MOCK_LATENCY_MS.min +
-    Math.floor(Math.random() * (MOCK_LATENCY_MS.max - MOCK_LATENCY_MS.min));
-  await delay(wait);
+  const result = await apiFetch("/api/chat", {
+    method: "POST",
+    body: JSON.stringify({ question: trimmed }),
+  });
 
-  const usage = readUsage();
-  if (usage.count >= MESSAGE_LIMIT) {
-    return buildLimitReachedMessage();
+  if (result.limited) {
+    syncUsage({ ...result, used: MESSAGE_LIMIT, remaining: 0, limited: true });
+    return {
+      ...buildLimitReachedMessage(),
+      used: MESSAGE_LIMIT,
+    };
   }
 
-  writeUsage(usage.count + 1);
-
+  syncUsage(result);
   return {
-    answer: pickReply(trimmed),
-    mock: true,
-    used: usage.count + 1,
+    answer: result.answer,
+    used: result.used,
+    suggestContact: Boolean(result.suggestContact ?? suggestsDirectContact(result.answer)),
   };
 }
 

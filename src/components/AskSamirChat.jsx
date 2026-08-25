@@ -1,16 +1,23 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { FaCompressAlt, FaExpandAlt, FaTrash } from "react-icons/fa";
+import { FaCompress, FaExpand, FaTrash } from "react-icons/fa";
 import ContactIconLinks from "./ContactIconLinks";
+import ChatMarkdown from "./ChatMarkdown";
 import {
   askAboutSamir,
   buildLimitReachedMessage,
   CHAR_LIMIT,
+  clearChatTranscript,
+  getHighestMessageSeq,
   getUsedMessages,
   forceMockLimitHit,
   isMockLimitReached,
+  loadChatTranscript,
   MESSAGE_LIMIT,
+  refreshChatUsage,
   resetMockUsage,
+  saveChatTranscript,
   SAMPLE_QUESTIONS,
+  suggestsDirectContact,
 } from "../services/chatService";
 
 const PLACEHOLDER_CYCLE_MS = 3800;
@@ -18,7 +25,9 @@ const MAX_HERO_LIFT_PX = 72;
 const HERO_LIFT_FACTOR = 0.28;
 const MAX_INPUT_LINES = 4;
 
-let messageSeq = 0;
+const initialTranscript = loadChatTranscript();
+let messageSeq = getHighestMessageSeq(initialTranscript);
+
 function nextMessageId() {
   messageSeq += 1;
   return `msg-${messageSeq}`;
@@ -45,14 +54,44 @@ function setHeroChatLift(pixels) {
   section.style.setProperty("--hero-chat-lift", `${lift}px`);
 }
 
+function AskSamirContactRow() {
+  return (
+    <div className="askSamirLimitContact">
+      <span className="askSamirLimitContactLabel">Contact Samir</span>
+      <ContactIconLinks variant="compact" showSocial={false} />
+    </div>
+  );
+}
+
+function AssistantMessage({ text, suggestContact }) {
+  const showContact = suggestContact || suggestsDirectContact(text);
+
+  return (
+    <div className="askSamirMessage is-assistant">
+      <ChatMarkdown content={text} />
+      {showContact && <AskSamirContactRow />}
+    </div>
+  );
+}
+
 function LimitMessage({ payload }) {
   return (
     <div className="askSamirMessage is-limit">
       <p className="askSamirLimitText">{payload.answer}</p>
-      <div className="askSamirLimitContact">
-        <span className="askSamirLimitContactLabel">Contact Samir</span>
-        <ContactIconLinks variant="compact" showSocial={false} />
-      </div>
+      <AskSamirContactRow />
+    </div>
+  );
+}
+
+function PlainMessage({ message }) {
+  const showContact =
+    message.role !== "user" &&
+    (message.suggestContact || suggestsDirectContact(message.text));
+
+  return (
+    <div className={`askSamirMessage is-${message.role}`}>
+      <p className="askSamirPlainText">{message.text}</p>
+      {showContact && <AskSamirContactRow />}
     </div>
   );
 }
@@ -62,13 +101,57 @@ function AskSamirChat() {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [placeholderVisible, setPlaceholderVisible] = useState(true);
   const [focused, setFocused] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(initialTranscript);
   const [status, setStatus] = useState("idle"); // idle | loading
   const [used, setUsed] = useState(() => getUsedMessages());
-  const [limited, setLimited] = useState(() => isMockLimitReached());
+  const [limited, setLimited] = useState(
+    () => isMockLimitReached() || initialTranscript.some((message) => message.role === "limit")
+  );
   const [expanded, setExpanded] = useState(false);
   const answerRef = useRef(null);
   const inputRef = useRef(null);
+  const stickToBottomRef = useRef(true);
+
+  const scrollAnswerToBottom = (behavior = "auto") => {
+    const el = answerRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior });
+  };
+
+  const handleAnswerScroll = () => {
+    const el = answerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    stickToBottomRef.current = distanceFromBottom < 32;
+  };
+
+  const handleAnswerWheel = (event) => {
+    const el = event.currentTarget;
+    if (el.scrollHeight <= el.clientHeight + 1) return;
+
+    event.stopPropagation();
+
+    const atTop = el.scrollTop <= 0;
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+    if ((event.deltaY < 0 && atTop) || (event.deltaY > 0 && atBottom)) {
+      event.preventDefault();
+    }
+  };
+
+  useEffect(() => {
+    refreshChatUsage()
+      .then((usage) => {
+        setUsed(usage.used);
+        setLimited(usage.limited);
+      })
+      .catch(() => {
+        /* API may be offline in dev until `npm run server` is started */
+      });
+  }, []);
+
+  useEffect(() => {
+    saveChatTranscript(messages);
+  }, [messages]);
 
   useEffect(() => {
     if (question.trim() || focused || limited) return undefined;
@@ -84,9 +167,11 @@ function AskSamirChat() {
     return () => clearInterval(timer);
   }, [question, focused, limited]);
 
-  useEffect(() => {
-    if (!answerRef.current) return;
-    answerRef.current.scrollTop = answerRef.current.scrollHeight;
+  useLayoutEffect(() => {
+    if (!answerRef.current || !stickToBottomRef.current) return;
+    scrollAnswerToBottom();
+    const frame = requestAnimationFrame(() => scrollAnswerToBottom());
+    return () => cancelAnimationFrame(frame);
   }, [messages, status, expanded]);
 
   useLayoutEffect(() => {
@@ -154,7 +239,9 @@ function AskSamirChat() {
   const clearChat = () => {
     if (status === "loading") return;
     setMessages([]);
+    clearChatTranscript();
     setStatus("idle");
+    stickToBottomRef.current = true;
     setHeroChatLift(0);
   };
 
@@ -197,6 +284,7 @@ function AskSamirChat() {
 
     setQuestion("");
     setStatus("loading");
+    stickToBottomRef.current = true;
     requestAnimationFrame(() => syncInputHeight(inputRef.current));
     setMessages((prev) => [
       ...prev,
@@ -221,7 +309,12 @@ function AskSamirChat() {
         setUsed(typeof result.used === "number" ? result.used : getUsedMessages());
         setMessages((prev) => [
           ...prev,
-          { id: nextMessageId(), role: "assistant", text: result.answer },
+          {
+            id: nextMessageId(),
+            role: "assistant",
+            text: result.answer,
+            suggestContact: result.suggestContact,
+          },
         ]);
       }
     } catch (err) {
@@ -231,6 +324,7 @@ function AskSamirChat() {
           id: nextMessageId(),
           role: "error",
           text: err?.message || "Something went wrong.",
+          suggestContact: suggestsDirectContact(err?.message),
         },
       ]);
     } finally {
@@ -266,16 +360,21 @@ function AskSamirChat() {
           role="log"
           aria-live="polite"
           aria-relevant="additions"
-          onWheel={(event) => event.stopPropagation()}
+          onScroll={handleAnswerScroll}
+          onWheel={handleAnswerWheel}
         >
           <div className="askSamirAnswerInner">
             {messages.map((message) =>
               message.role === "limit" ? (
                 <LimitMessage key={message.id} payload={message.payload} />
+              ) : message.role === "assistant" ? (
+                <AssistantMessage
+                  key={message.id}
+                  text={message.text}
+                  suggestContact={message.suggestContact}
+                />
               ) : (
-                <p key={message.id} className={`askSamirMessage is-${message.role}`}>
-                  {message.text}
-                </p>
+                <PlainMessage key={message.id} message={message} />
               )
             )}
             {status === "loading" && <p className="askSamirThinking">Thinking…</p>}
@@ -283,7 +382,22 @@ function AskSamirChat() {
         </div>
       )}
 
-      <form className="askSamirForm" onSubmit={submit}>
+      <div className="askSamirInputWrap">
+        <button
+          type="button"
+          className="askSamirExpand"
+          onClick={() => setExpanded((open) => !open)}
+          aria-label={expanded ? "Collapse chat" : "Expand chat"}
+          title={expanded ? "Collapse chat" : "Expand chat"}
+        >
+          {expanded ? (
+            <FaCompress size={12} aria-hidden="true" />
+          ) : (
+            <FaExpand size={12} aria-hidden="true" />
+          )}
+        </button>
+
+        <form className="askSamirForm" onSubmit={submit}>
         <div className="askSamirField">
           <textarea
             ref={inputRef}
@@ -322,6 +436,7 @@ function AskSamirChat() {
           {limited ? "Limit" : "Ask"}
         </button>
       </form>
+      </div>
 
       <div className="askSamirLabelRow">
         <p className="askSamirLabel">
@@ -337,19 +452,6 @@ function AskSamirChat() {
             {charCount}/{CHAR_LIMIT}
           </span>
         )}
-        <button
-          type="button"
-          className="askSamirExpand"
-          onClick={() => setExpanded((open) => !open)}
-          aria-label={expanded ? "Collapse chat" : "Expand chat"}
-          title={expanded ? "Collapse chat" : "Expand chat"}
-        >
-          {expanded ? (
-            <FaCompressAlt size={11} aria-hidden="true" />
-          ) : (
-            <FaExpandAlt size={11} aria-hidden="true" />
-          )}
-        </button>
         {import.meta.env.DEV && (
           <button
             type="button"
