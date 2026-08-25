@@ -6,6 +6,7 @@ import './style/main.css'
 import './style/elements.css'
 import './style/utilities.css'
 import './style/components.css'
+import './style/lab.css'
 
 
 import App from './App.jsx'

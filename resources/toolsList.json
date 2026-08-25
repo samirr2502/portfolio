@@ -1,54 +1,140 @@
 [
-{
-    "position":"aws",
-    "description":"<i class='devicon-amazonwebservices-plain-wordmark'></i>"
-},
-{
-    "position":"React",
-    "description":"<i class='devicon-react-original'></i>"
-},
-{
-    "position":"Python",
-    "description":"<i class='devicon-python-plain'></i>"
-},
-{
-    "position":"java",
-    "description":"<i class='devicon-java-plain'></i>"
-},
-{
-    "position":"Typescript",
-    "description":"<i class='devicon-typescript-plain'></i>"
-},
-
-
-{
-    "position":"JavaScript",
-    "description":"<i class='devicon-javascript-plain'></i>"
-},
-{
-    "position":"Nodejs",
-    "description":"<i class='devicon-nodejs-plain'></i>"
-},
-
-{
-    "position":"json",
-    "description":"<i class='devicon-json-plain'></i>"
-},
-{
-    "position":"MySQL",
-    "description":"<i class='devicon-mysql-original'></i>"
-},
-
-
-
-{
-    "position":"flask",
-    "description":"<i class='devicon-flask-original'></i>"
-},
-{
-    "position":"mongodb",
-    "description":"<i class='devicon-mongodb-plain'></i>"
-}
-
-
+  {
+    "id": "react",
+    "label": "React",
+    "group": "language",
+    "icon": "<i class='devicon-react-original'></i>"
+  },
+  {
+    "id": "typescript",
+    "label": "TypeScript",
+    "group": "language",
+    "icon": "<i class='devicon-typescript-plain'></i>"
+  },
+  {
+    "id": "javascript",
+    "label": "JavaScript",
+    "group": "language",
+    "icon": "<i class='devicon-javascript-plain'></i>"
+  },
+  {
+    "id": "nodejs",
+    "label": "Node.js",
+    "group": "language",
+    "icon": "<i class='devicon-nodejs-plain'></i>"
+  },
+  {
+    "id": "python",
+    "label": "Python",
+    "group": "language",
+    "icon": "<i class='devicon-python-plain'></i>"
+  },
+  {
+    "id": "ai-automation",
+    "label": "AI Automation",
+    "group": "language",
+    "icon": "<i class='devicon-tensorflow-original'></i>",
+    "children": [
+      { "id": "ai-openai", "label": "OpenAI", "short": "OpenAI" },
+      { "id": "ai-agents", "label": "Agents", "short": "Agents" },
+      { "id": "ai-workflows", "label": "Workflows", "short": "Flows" }
+    ]
+  },
+  {
+    "id": "java",
+    "label": "Java",
+    "group": "language",
+    "icon": "<i class='devicon-java-plain'></i>"
+  },
+  {
+    "id": "flutter",
+    "label": "Flutter",
+    "group": "language",
+    "icon": "<i class='devicon-flutter-plain'></i>"
+  },
+  {
+    "id": "flask",
+    "label": "Flask",
+    "group": "language",
+    "icon": "<i class='devicon-flask-original'></i>"
+  },
+  {
+    "id": "mysql",
+    "label": "MySQL",
+    "group": "language",
+    "icon": "<i class='devicon-mysql-original'></i>"
+  },
+  {
+    "id": "postgresql",
+    "label": "PostgreSQL",
+    "group": "language",
+    "icon": "<i class='devicon-postgresql-plain'></i>"
+  },
+  {
+    "id": "aws",
+    "label": "AWS",
+    "group": "platform",
+    "icon": "<i class='devicon-amazonwebservices-plain-wordmark'></i>",
+    "children": [
+      { "id": "aws-ec2", "label": "EC2", "short": "EC2" },
+      { "id": "aws-s3", "label": "S3", "short": "S3" },
+      { "id": "aws-route53", "label": "Route 53", "short": "R53" }
+    ]
+  },
+  {
+    "id": "linux",
+    "label": "Linux",
+    "group": "platform",
+    "icon": "<i class='devicon-linux-plain'></i>",
+    "children": [
+      { "id": "nginx", "label": "Nginx", "short": "Nginx" },
+      { "id": "pm2", "label": "PM2", "short": "PM2" }
+    ]
+  },
+  {
+    "id": "firebase",
+    "label": "Firebase",
+    "group": "platform",
+    "icon": "<i class='devicon-firebase-plain'></i>",
+    "children": [
+      { "id": "firebase-auth", "label": "Auth", "short": "Auth" },
+      { "id": "firebase-firestore", "label": "Firestore", "short": "Store" },
+      { "id": "firebase-storage", "label": "Storage", "short": "Files" },
+      { "id": "firebase-fcm", "label": "FCM", "short": "FCM" },
+      { "id": "firebase-messaging", "label": "Messaging", "short": "Msg" },
+      { "id": "firebase-functions", "label": "Functions", "short": "Fn" }
+    ]
+  },
+  {
+    "id": "supabase",
+    "label": "Supabase",
+    "group": "platform",
+    "icon": "<i class='devicon-supabase-plain'></i>",
+    "children": [
+      { "id": "supabase-auth", "label": "Auth", "short": "Auth" },
+      { "id": "supabase-auth-google", "label": "Google login", "short": "Google" },
+      { "id": "supabase-auth-apple", "label": "Apple login", "short": "Apple" },
+      { "id": "supabase-storage", "label": "Storage", "short": "Files" },
+      { "id": "supabase-db", "label": "Postgres DB", "short": "DB" }
+    ]
+  },
+  {
+    "id": "mongodb",
+    "label": "MongoDB",
+    "group": "platform",
+    "icon": "<i class='devicon-mongodb-plain'></i>",
+    "children": [
+      { "id": "mongodb-database", "label": "Database", "short": "DB" }
+    ]
+  },
+  {
+    "id": "apple",
+    "label": "Apple",
+    "group": "platform",
+    "icon": "<i class='devicon-apple-original'></i>",
+    "children": [
+      { "id": "apple-testflight", "label": "TestFlight", "short": "TF" },
+      { "id": "apple-app-store", "label": "App Store", "short": "Store" }
+    ]
+  }
 ]

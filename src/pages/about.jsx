@@ -8,7 +8,7 @@ function About(){
         <>
     <span className="homeMessage">
      <h1>Hi, I'm Samir Rodriguez</h1>
-     <h3>Web Developer & Software Engineer</h3>
+     <h3>Web Developer · Software Engineer · AI Automation</h3>
      <span> <i className="icon-sm">Senior Computer Science Major at BYU-Provo</i></span>
      </span>
      <div className="cardsGrid aboutGroups">

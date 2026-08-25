@@ -1,20 +1,51 @@
 [
-{
-    "position":"FullStack WebDeveloper",
-    "description":"Led Developer's team in maintaining and creating new features for the main Office Data Support Tool of the Office of First Year Experience",
-    "tools":["Mendix", "Scrum","Agile","PostgresSQL","Git","SMTP","websockets","api"],
-    "languanges":["SQL","java","typescript"],
-    "startDate":"May 2024",
-    "endDate":"Present"
-},
-
-{
-    "position":"Research A. & Data Analyst",
-    "description":"Led Tech projects that impacted students confidence in their first semester by researching, cleaning data, creating graphs, reports and tracking systems for hundreds of Mentors and Thousands of Students",
-    "tools":["Excel","Qualtrix", "Tableau"],
-    "languanges":["typescript"],
-    "startDate":"Jan 2024",
-    "endDate":"Present"
-}
-
+  {
+    "company": "Prometheus Mortgage",
+    "position": "Full Stack Software Engineer",
+    "hook": "Production portal for mortgage ops, leads, and client workflows",
+    "tools": ["React", "TypeScript", "Node.js", "AWS", "Nginx", "PM2"],
+    "languanges": ["typescript", "javascript", "sql"],
+    "startDate": "2024",
+    "endDate": "Present",
+    "featuredProjects": [
+      {
+        "id": "portal-prod",
+        "name": "Prometheus Portal",
+        "url": "https://portal.prometheus.mortgage"
+      }
+    ],
+    "impact": {
+      "problem": "Ops had no unified portal tying together leads, marketing, and client workflows.",
+      "solution": "Shipped the full-stack React/Node portal on AWS with Nginx and PM2 deploy pipeline.",
+      "value": "Live at portal.prometheus.mortgage — real users and real lead workflows."
+    }
+  },
+  {
+    "company": "Office of First Year Experience",
+    "position": "FullStack WebDeveloper",
+    "hook": "Lead dev for the office's main data support platform",
+    "tools": ["Mendix", "Scrum", "Agile", "PostgresSQL", "Git", "SMTP", "websockets", "api"],
+    "languanges": ["SQL", "java", "typescript"],
+    "startDate": "May 2024",
+    "endDate": "Present",
+    "impact": {
+      "problem": "The office's main data tool needed new features and reliable delivery under Agile.",
+      "solution": "Led the dev team shipping Mendix/Postgres features with API, websocket, and SMTP integrations.",
+      "value": "Sustained platform the office depends on for daily data support."
+    }
+  },
+  {
+    "company": "Office of First Year Experience",
+    "position": "Research A. & Data Analyst",
+    "hook": "Research and tracking systems for mentors and thousands of students",
+    "tools": ["Excel", "Qualtrix", "Tableau"],
+    "languanges": ["typescript"],
+    "startDate": "Jan 2024",
+    "endDate": "Present",
+    "impact": {
+      "problem": "No visibility into mentor and student outcomes across hundreds of mentors and thousands of students.",
+      "solution": "Researched, cleaned datasets, and built Tableau and Excel reports plus tracking systems.",
+      "value": "Gave stakeholders data-backed insight into first-semester student confidence."
+    }
+  }
 ]
