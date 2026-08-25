@@ -24,6 +24,11 @@ const TOOL_ALIASES = {
   firebase: "firebase",
   firestore: "firebase-firestore",
   fcm: "firebase-fcm",
+  messaging: "firebase-messaging",
+  auth: "firebase-auth",
+  functions: "firebase-functions",
+  function: "firebase-functions",
+  storage: "firebase-storage",
   supabase: "supabase",
   linux: "linux",
   nginx: "nginx",
@@ -122,12 +127,24 @@ function resolveImageUrl(imagePath) {
 function buildMediaFromCode(item, categories) {
   const images = (item.images || []).map(resolveImageUrl).filter(Boolean);
   const isMobile = categories.includes("ios-app") || categories.includes("android-app");
-  const isWeb = categories.includes("web-app") || !isMobile;
+  const isWeb = categories.includes("web-app") && !isMobile;
 
   return {
     desktop: isWeb ? images : [],
     tablet: [],
     phone: isMobile ? images : isWeb ? images.slice(0, 1) : images,
+    video: null,
+  };
+}
+
+function buildMediaFromLive(item) {
+  const desktop = (item.imagesDesktop || []).map(resolveImageUrl).filter(Boolean);
+  const phone = (item.imagesMobile || []).map(resolveImageUrl).filter(Boolean);
+
+  return {
+    desktop,
+    tablet: [],
+    phone,
     video: null,
   };
 }
@@ -139,9 +156,8 @@ function isTituahProject(item = {}) {
 function availableDevices(media, categories, item = {}) {
   const devices = [];
   const isMobile = categories.includes("ios-app") || categories.includes("android-app");
-  if (media.desktop?.length || (categories.includes("web-app") && !isMobile)) {
-    devices.push("desktop");
-  }
+
+  if (media.desktop?.length) devices.push("desktop");
   if (media.tablet?.length) devices.push("tablet");
   if (media.phone?.length || isMobile) devices.push("phone");
 
@@ -151,7 +167,11 @@ function availableDevices(media, categories, item = {}) {
     if (!devices.includes("phone")) devices.push("phone");
   }
 
-  if (!devices.length) devices.push("desktop");
+  if (!devices.length) {
+    if (categories.includes("web-app") && !isMobile) devices.push("desktop");
+    else devices.push("phone");
+  }
+
   return devices;
 }
 
@@ -265,6 +285,15 @@ function derivePlatformToolsFromCode(item) {
   if (tags.includes("firestore") || tags.includes("firebase")) {
     extras.push("firebase", "firebase-firestore");
   }
+  if (tags.includes("auth")) {
+    extras.push("firebase", "firebase-auth");
+  }
+  if (tags.includes("functions") || tags.includes("function")) {
+    extras.push("firebase", "firebase-functions");
+  }
+  if (tags.includes("storage")) {
+    extras.push("firebase", "firebase-storage");
+  }
   if (tags.includes("fcm") || tags.includes("messaging")) {
     extras.push("firebase", "firebase-fcm", "firebase-messaging");
   }
@@ -373,13 +402,21 @@ function expandProjectTools(toolIds = []) {
     if (!expanded.includes("apple")) expanded.push("apple");
   }
 
+  if (
+    expanded.includes("firebase") ||
+    expanded.some((id) => typeof id === "string" && id.startsWith("firebase-"))
+  ) {
+    if (!expanded.includes("firebase")) expanded.push("firebase");
+  }
+
   return uniqueList(expanded);
 }
 
 export function buildProjectCatalog() {
   const live = deployments.map((item) => {
     const categories = deriveCategoriesFromLive(item);
-    const media = { desktop: [], tablet: [], phone: [], video: null };
+    const media = buildMediaFromLive(item);
+    const thumb = media.phone[0] || media.desktop[0] || null;
     return {
       id: `live-${item.id}`,
       name: item.name,
@@ -399,7 +436,7 @@ export function buildProjectCatalog() {
       media,
       devices: availableDevices(media, categories, item),
       phoneOrientation: phoneOrientationFor(item),
-      thumb: null,
+      thumb,
     };
   });
 

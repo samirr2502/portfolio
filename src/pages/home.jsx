@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import deployments from "../../resources/deploymentsList.json";
 import experiences from "../../resources/experienceList.json";
-import ScrollDeck from "../components/ScrollDeck";
+import ScrollDeck, { scrollDeckTo } from "../components/ScrollDeck";
 import FullScreenSection from "../components/FullScreenSection";
 import HeroStage from "../components/HeroStage";
 import AskSamirChat from "../components/AskSamirChat";
@@ -24,6 +24,7 @@ function Home({ onActiveSectionChange }) {
 
   const handleFeaturedProjectClick = useCallback((projectId) => {
     setFocusProjectId(projectId);
+    scrollDeckTo("projects");
   }, []);
 
   const clearFocusProject = useCallback(() => {
@@ -33,7 +34,7 @@ function Home({ onActiveSectionChange }) {
   return (
     <ScrollDeck onActiveChange={handleActive}>
       <FullScreenSection id="home" nextId="experience" nextLabel="Experience" className="section-home">
-        <HeroStage featured={featured} />
+        <HeroStage featured={featured} onFeaturedProjectClick={handleFeaturedProjectClick} />
         <AskSamirChat />
       </FullScreenSection>
 

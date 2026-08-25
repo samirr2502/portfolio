@@ -8,20 +8,23 @@
     "env": "production",
     "featured": true,
     "group": "work",
-    "tools": ["react", "typescript", "nodejs", "aws", "aws-ec2", "aws-route53", "nginx", "pm2"],
-    "description": "Production frontend for ClearView Utah with a live Nginx surface and authenticated API health on the EC2 stack."
-  },
-  {
-    "id": "construmates-prod",
-    "name": "Construmates",
-    "org": "Construmates",
-    "url": "https://app.construmates.com",
-    "status": "issue",
-    "env": "production",
-    "featured": false,
-    "group": "personal",
-    "tools": ["react", "typescript", "nodejs", "aws", "aws-ec2", "aws-route53", "supabase", "supabase-auth", "supabase-db", "postgresql", "nginx", "pm2"],
-    "description": "Production Construmates app. Frontend currently returns 502 when the :3000 backend is down."
+    "tools": [
+      "react",
+      "typescript",
+      "nodejs",
+      "aws",
+      "aws-ec2",
+      "aws-route53",
+      "nginx",
+      "pm2"
+    ],
+    "description": "Production frontend for ClearView Utah with a live Nginx surface and authenticated API health on the EC2 stack.",
+    "imagesDesktop": [
+      "/images/deployments/clearview-desktop.png"
+    ],
+    "imagesMobile": [
+      "/images/deployments/clearview-mobile.png"
+    ]
   },
   {
     "id": "construmates-staging",
@@ -32,32 +35,28 @@
     "env": "staging",
     "featured": true,
     "group": "personal",
-    "tools": ["react", "typescript", "nodejs", "aws", "aws-ec2", "aws-route53", "supabase", "supabase-auth", "supabase-db", "postgresql", "nginx", "pm2"],
-    "description": "Staging Construmates environment with a healthy frontend and PM2-backed API on :3001."
-  },
-  {
-    "id": "status",
-    "name": "EC2 Live Status",
-    "org": "Personal",
-    "url": "https://status.samirrodriguez.click",
-    "status": "issue",
-    "env": "production",
-    "featured": true,
-    "group": "personal",
-    "tools": ["react", "javascript", "nodejs", "aws", "aws-ec2", "aws-route53", "nginx", "pm2"],
-    "description": "Live status dashboard for services on my EC2 instance — uptime, Nginx surfaces, and process health."
-  },
-  {
-    "id": "interact",
-    "name": "Interact",
-    "org": "Personal",
-    "url": "https://interact.samirrodriguez.click",
-    "status": "issue",
-    "env": "production",
-    "featured": false,
-    "group": "personal",
-    "tools": ["react", "javascript", "aws", "aws-ec2", "aws-route53", "nginx"],
-    "description": "Personal Interact app. Frontend is currently 502 while the :3100 backend is unavailable."
+    "tools": [
+      "react",
+      "typescript",
+      "nodejs",
+      "aws",
+      "aws-ec2",
+      "aws-route53",
+      "supabase",
+      "supabase-auth",
+      "supabase-db",
+      "postgresql",
+      "nginx",
+      "pm2"
+    ],
+    "description": "Staging Construmates environment with a healthy frontend and PM2-backed API on :3001.",
+    "mobileCaptureZoom": 0.82,
+    "imagesDesktop": [
+      "/images/deployments/construmates-staging-desktop.png"
+    ],
+    "imagesMobile": [
+      "/images/deployments/construmates-staging-mobile.png"
+    ]
   },
   {
     "id": "portal-prod",
@@ -68,32 +67,28 @@
     "env": "production",
     "featured": true,
     "group": "work",
-    "tools": ["react", "typescript", "nodejs", "aws", "aws-ec2", "aws-route53", "aws-s3", "supabase", "supabase-auth", "supabase-db", "postgresql", "nginx", "pm2"],
-    "description": "Prometheus Portal production — also backs prometheus.mortgage /api."
-  },
-  {
-    "id": "portal-staging",
-    "name": "Portal Staging",
-    "org": "Prometheus",
-    "url": "https://stagingportal.prometheus-leads.app",
-    "status": "healthy",
-    "env": "staging",
-    "featured": false,
-    "group": "work",
-    "tools": ["react", "typescript", "nodejs", "aws", "aws-ec2", "aws-route53", "supabase", "supabase-auth", "supabase-db", "postgresql", "nginx", "pm2"],
-    "description": "Staging Portal for Prometheus Leads with a healthy frontend and API on :4110."
-  },
-  {
-    "id": "prometheus-leads",
-    "name": "Prometheus Leads",
-    "org": "Prometheus",
-    "url": "https://prometheus-leads.app",
-    "status": "healthy",
-    "env": "production",
-    "featured": true,
-    "group": "work",
-    "tools": ["react", "typescript", "nodejs", "aws", "aws-ec2", "aws-route53", "supabase", "supabase-auth", "supabase-db", "postgresql", "nginx", "pm2"],
-    "description": "Lead generation platform for Prometheus with a stable Nginx frontend and PM2 API."
+    "tools": [
+      "react",
+      "typescript",
+      "nodejs",
+      "aws",
+      "aws-ec2",
+      "aws-route53",
+      "aws-s3",
+      "supabase",
+      "supabase-auth",
+      "supabase-db",
+      "postgresql",
+      "nginx",
+      "pm2"
+    ],
+    "description": "Prometheus Portal production — also backs prometheus.mortgage /api.",
+    "imagesDesktop": [
+      "/images/deployments/portal-prod-desktop.png"
+    ],
+    "imagesMobile": [
+      "/images/deployments/portal-prod-mobile.png"
+    ]
   },
   {
     "id": "prometheus-mortgage",
@@ -104,8 +99,25 @@
     "env": "production",
     "featured": true,
     "group": "work",
-    "tools": ["react", "javascript", "aws", "aws-ec2", "aws-route53", "supabase", "supabase-auth", "supabase-db", "postgresql", "nginx"],
-    "description": "Prometheus Mortgage marketing site; API traffic is served by Portal production."
+    "tools": [
+      "react",
+      "javascript",
+      "aws",
+      "aws-ec2",
+      "aws-route53",
+      "supabase",
+      "supabase-auth",
+      "supabase-db",
+      "postgresql",
+      "nginx"
+    ],
+    "description": "Prometheus Mortgage marketing site; API traffic is served by Portal production.",
+    "imagesDesktop": [
+      "/images/deployments/prometheus-mortgage-desktop.png"
+    ],
+    "imagesMobile": [
+      "/images/deployments/prometheus-mortgage-mobile.png"
+    ]
   },
   {
     "id": "tituah-staging",
@@ -116,7 +128,28 @@
     "env": "staging",
     "featured": true,
     "group": "collab",
-    "tools": ["react", "nodejs", "aws", "aws-ec2", "aws-route53", "supabase", "supabase-auth", "supabase-storage", "supabase-db", "postgresql", "linux", "nginx", "pm2"],
-    "description": "Tituah staging deploy on EC2 with a healthy frontend and backend on :3310."
+    "tools": [
+      "react",
+      "nodejs",
+      "aws",
+      "aws-ec2",
+      "aws-route53",
+      "supabase",
+      "supabase-auth",
+      "supabase-storage",
+      "supabase-db",
+      "postgresql",
+      "linux",
+      "nginx",
+      "pm2"
+    ],
+    "description": "Tituah staging deploy on EC2 with a healthy frontend and backend on :3310.",
+    "mobileOrientation": "landscape",
+    "imagesDesktop": [
+      "/images/deployments/tituah-staging-desktop.png"
+    ],
+    "imagesMobile": [
+      "/images/deployments/tituah-staging-mobile.png"
+    ]
   }
 ]

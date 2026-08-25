@@ -11,6 +11,7 @@
         "preview": "vite preview",
         "predeploy": "npm run build",
         "deploy": "gh-pages -d dist",
+        "capture:deployments": "node scripts/captureDeploymentScreenshots.mjs",
         "server:install": "npm install --prefix server",
         "server": "npm run dev --prefix server"
     },

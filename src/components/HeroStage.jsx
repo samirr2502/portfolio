@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { FaExternalLinkAlt } from "react-icons/fa";
-import { scrollDeckTo } from "./ScrollDeck";
 import ContactIconLinks from "./ContactIconLinks";
 import { CHAT_TRANSCRIPT_EVENT, loadChatTranscript } from "../services/chatService";
 
 const CYCLE_MS = 4200;
 
-function HeroStage({ featured }) {
+function featuredPreviewImage(item) {
+  return item?.imagesDesktop?.[0] || item?.imagesMobile?.[0] || null;
+}
+
+function HeroStage({ featured, onFeaturedProjectClick }) {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const [entered, setEntered] = useState(false);
@@ -17,6 +20,7 @@ function HeroStage({ featured }) {
   const featureRef = useRef(null);
   const trackRef = useRef(null);
   const active = featured[index] || featured[0];
+  const previewImage = featuredPreviewImage(active);
 
   useEffect(() => {
     const enter = requestAnimationFrame(() => setEntered(true));
@@ -102,6 +106,11 @@ function HeroStage({ featured }) {
     }, 220);
   };
 
+  const openFeaturedProject = () => {
+    if (!active?.id) return;
+    onFeaturedProjectClick?.(active.id);
+  };
+
   const swipeHint =
     mobilePanel === 0 ? "Slide for featured projects →" : "← Slide for info";
 
@@ -126,13 +135,6 @@ function HeroStage({ featured }) {
           Building and shipping live apps across ClearView, Construmates, Prometheus, and personal infrastructure.
         </p>
         <div className="heroActions">
-          <button type="button" className="btnOutline btnSm" onClick={() => scrollDeckTo("projects")}>
-            View Projects
-            <span aria-hidden="true">→</span>
-          </button>
-          <button type="button" className="btnOutline btnSm" onClick={() => scrollDeckTo("experience")}>
-            Experience
-          </button>
           <ContactIconLinks variant="hero" />
         </div>
       </div>
@@ -146,22 +148,45 @@ function HeroStage({ featured }) {
         </div>
 
         <div className={`heroFeatureCard ${visible ? "is-visible" : ""}`}>
-          <div className="heroFeaturePreview" data-org={active?.org}>
-            <span className="previewOrg">{active?.org}</span>
-            <span className="previewName">{active?.name}</span>
-            <span className={`previewStatus status-${active?.status}`}>
-              <span className="dot" />
-              {active?.status === "healthy" ? "Healthy" : "Issue"}
-            </span>
+          <div
+            className={`heroFeaturePreview${previewImage ? " has-image" : ""}`}
+            data-org={active?.org}
+          >
+            {previewImage ? (
+              <>
+                <img src={previewImage} alt="" className="heroFeaturePreviewImg" loading="lazy" />
+                <span className={`heroFeatureStatusBadge status-${active?.status}`}>
+                  <span className="dot" />
+                  {active?.status === "healthy" ? "Healthy" : "Issue"}
+                </span>
+              </>
+            ) : (
+              <div className="heroFeaturePreviewOverlay">
+                <span className="previewOrg">{active?.org}</span>
+                <span className="previewName">{active?.name}</span>
+                <span className={`previewStatus status-${active?.status}`}>
+                  <span className="dot" />
+                  {active?.status === "healthy" ? "Healthy" : "Issue"}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="heroFeatureBody">
+            <span className="heroFeatureOrg">{active?.org}</span>
             <h2>{active?.name}</h2>
             <p>{active?.description}</p>
             <div className="heroFeatureLinks">
               <a href={active?.url} target="_blank" rel="noreferrer" className="btnText">
                 Live <FaExternalLinkAlt size={11} />
               </a>
+              <button
+                type="button"
+                className="btnText"
+                onClick={openFeaturedProject}
+              >
+                Details
+              </button>
               <span className="envChip">{active?.env}</span>
             </div>
           </div>

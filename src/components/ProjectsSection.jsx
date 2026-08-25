@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
+  FaChevronLeft,
+  FaChevronRight,
   FaDesktop,
   FaExternalLinkAlt,
   FaGithub,
@@ -88,11 +90,19 @@ function useTouchUi() {
   return touchUi;
 }
 
-function DeviceFrame({ type, src, emptyLabel, orientation = "portrait" }) {
+function DeviceFrame({
+  type,
+  src,
+  emptyLabel,
+  orientation = "portrait",
+  showShotNav = false,
+  onPrevShot,
+  onNextShot,
+}) {
   const landscape = type === "phone" && orientation === "landscape";
   return (
     <div
-      className={`deviceFrame deviceFrame--${type}${landscape ? " is-landscape" : ""}`}
+      className={`deviceFrame deviceFrame--${type}${landscape ? " is-landscape" : ""}${showShotNav ? " has-shot-nav" : ""}`}
     >
       <div className="deviceChrome">
         <span />
@@ -105,6 +115,26 @@ function DeviceFrame({ type, src, emptyLabel, orientation = "portrait" }) {
         ) : (
           <div className="devicePlaceholder">{emptyLabel}</div>
         )}
+        {showShotNav ? (
+          <>
+            <button
+              type="button"
+              className="deviceShotNav deviceShotNav--prev"
+              onClick={onPrevShot}
+              aria-label="Previous screenshot"
+            >
+              <FaChevronLeft size={26} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="deviceShotNav deviceShotNav--next"
+              onClick={onNextShot}
+              aria-label="Next screenshot"
+            >
+              <FaChevronRight size={26} aria-hidden="true" />
+            </button>
+          </>
+        ) : null}
       </div>
     </div>
   );
@@ -367,6 +397,7 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
   const [hoveredProjectId, setHoveredProjectId] = useState(null);
   const [lockedProjectId, setLockedProjectId] = useState(null);
   const [deviceView, setDeviceView] = useState("desktop");
+  const [mediaIndex, setMediaIndex] = useState(0);
 
   const projectLocked = Boolean(lockedProjectId);
   const activeTools =
@@ -409,6 +440,32 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
       setDeviceView(activeProject.devices[0] || "desktop");
     }
   }, [activeProject, deviceView]);
+
+  useEffect(() => {
+    setMediaIndex(0);
+  }, [activeProject?.id, activeDeviceView]);
+
+  const activeMediaList =
+    activeDeviceView === "desktop"
+      ? activeProject?.media?.desktop || []
+      : activeDeviceView === "tablet"
+        ? activeProject?.media?.tablet || []
+        : activeProject?.media?.phone || [];
+
+  const activeDeviceSrc = activeMediaList[mediaIndex] || null;
+  const hasMultipleShots = activeMediaList.length > 1;
+
+  const goPrevShot = () => {
+    if (!hasMultipleShots) return;
+    setMediaIndex((current) =>
+      current === 0 ? activeMediaList.length - 1 : current - 1
+    );
+  };
+
+  const goNextShot = () => {
+    if (!hasMultipleShots) return;
+    setMediaIndex((current) => (current + 1) % activeMediaList.length);
+  };
 
   const relatedCategories = useMemo(
     () => new Set(activeProject?.categories || []),
@@ -482,20 +539,6 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
   const toggleTool = (toolId) => {
     setSelectedTools((current) => toggleInList(current, toolId));
   };
-
-  const desktopSrc = activeProject?.media?.desktop?.[0] || null;
-  const tabletSrc = activeProject?.media?.tablet?.[0] || null;
-  const phoneSrc =
-    activeProject?.media?.phone?.[0] ||
-    activeProject?.media?.desktop?.[0] ||
-    null;
-
-  const activeDeviceSrc =
-    activeDeviceView === "desktop"
-      ? desktopSrc
-      : activeDeviceView === "tablet"
-        ? tabletSrc
-        : phoneSrc;
 
   const activeDeviceLabel =
     activeDeviceView === "desktop"
@@ -829,18 +872,29 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
                     })}
                 </div>
 
-                <div className="deviceStageCanvas">
-                  <DeviceFrame
-                    type={activeDeviceView}
-                    src={activeDeviceSrc}
-                    emptyLabel={activeDeviceLabel}
-                    orientation={
-                      activeDeviceView === "phone"
-                        ? activeProject.phoneOrientation || "portrait"
-                        : "portrait"
-                    }
-                  />
+                <div className="deviceStageCarousel">
+                  <div className="deviceStageCanvas">
+                    <DeviceFrame
+                      type={activeDeviceView}
+                      src={activeDeviceSrc}
+                      emptyLabel={activeDeviceLabel}
+                      orientation={
+                        activeDeviceView === "phone"
+                          ? activeProject.phoneOrientation || "portrait"
+                          : "portrait"
+                      }
+                      showShotNav={hasMultipleShots}
+                      onPrevShot={goPrevShot}
+                      onNextShot={goNextShot}
+                    />
+                  </div>
                 </div>
+
+                {hasMultipleShots ? (
+                  <p className="deviceStageCounter" aria-live="polite">
+                    {mediaIndex + 1} / {activeMediaList.length}
+                  </p>
+                ) : null}
               </div>
 
               <p className="projectPreviewHint">

@@ -29,9 +29,14 @@ function ScrollDeck({ children, onActiveChange }) {
   );
 }
 
+export const DECK_NAV_EVENT = "deck-section-nav";
+
 export function scrollDeckTo(sectionId) {
   const target = document.getElementById(sectionId);
   if (!target) return;
+  window.dispatchEvent(
+    new CustomEvent(DECK_NAV_EVENT, { detail: { sectionId } })
+  );
   target.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 

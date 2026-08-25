@@ -4,7 +4,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-
 import Header from "./snippets/header";
 import Footer from "./snippets/footer";
 import TechBackground from "./components/TechBackground";
-import { scrollDeckTo } from "./components/ScrollDeck";
+import { scrollDeckTo, DECK_NAV_EVENT } from "./components/ScrollDeck";
 import Home from "./pages/home";
 import Personal from "./pages/personalProjects";
 import School from "./pages/schoolProjects";
@@ -44,6 +44,16 @@ function App() {
 
   useEffect(() => {
     if (!isDeck) return undefined;
+    const onDeckNav = (event) => {
+      const sectionId = event.detail?.sectionId;
+      if (sectionId) setActiveSection(sectionId);
+    };
+    window.addEventListener(DECK_NAV_EVENT, onDeckNav);
+    return () => window.removeEventListener(DECK_NAV_EVENT, onDeckNav);
+  }, [isDeck]);
+
+  useEffect(() => {
+    if (!isDeck) return undefined;
     const hash = location.hash.replace("#", "");
     if (!hash) return undefined;
     const timer = window.setTimeout(() => scrollDeckTo(hash), 80);
@@ -51,6 +61,7 @@ function App() {
   }, [isDeck, location.hash]);
 
   const goToSection = (sectionId) => {
+    setActiveSection(sectionId);
     if (isDeck) {
       scrollDeckTo(sectionId);
       return;

@@ -21,7 +21,13 @@
             "fun",
             "game",
             "apple",
+            "firebase",
             "firestore",
+            "auth",
+            "functions",
+            "fcm",
+            "messaging",
+            "storage",
             "card game"
         ],
         "languages": [
@@ -49,7 +55,10 @@
             "apple",
             "api",
             "httpService",
-            "webApp"
+            "firebase",
+            "auth",
+            "fcm",
+            "functions"
         ],
         "languages": [
             "flutter"
