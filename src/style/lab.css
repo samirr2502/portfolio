@@ -222,11 +222,27 @@ html.deck-mode #root {
   background: color-mix(in srgb, var(--lab-accent) 8%, transparent);
 }
 
-.theme-toggle.btnSm {
-  padding: 0.22rem 0.5rem;
-  font-size: 0.68rem;
-  font-weight: 600;
+.theme-toggle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--lab-muted);
+  cursor: pointer;
   line-height: 1;
+  border-radius: 0;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.theme-toggle:hover {
+  color: var(--lab-accent);
+  background: transparent;
+  transform: translateY(-1px);
 }
 
 /* Scroll deck */
@@ -373,6 +389,28 @@ html.deck-mode #root {
   text-align: left;
 }
 
+.aboutPanelsCarousel {
+  width: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.aboutPanelsTrack {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  width: 100%;
+  text-align: left;
+}
+
+.aboutPanelSlide {
+  min-width: 0;
+}
+
+.stageSwipeHint {
+  display: none;
+}
+
 .aboutPanel {
   border: 1px solid var(--lab-line);
   background: color-mix(in srgb, var(--bg-panel) 90%, transparent);
@@ -381,6 +419,20 @@ html.deck-mode #root {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.aboutPanelBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.aboutPanelBody p {
+  flex: 1 1 auto;
 }
 
 .aboutPanel h3 {
@@ -406,8 +458,10 @@ html.deck-mode #root {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--lab-muted) !important;
-  padding-top: 0.25rem;
+  padding-top: 0.35rem;
   border-top: 1px solid var(--lab-line);
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .aboutReach {
@@ -629,14 +683,26 @@ html:not(.theme-light) .projectTileInitials {
 
 /* Hero — tighter / zoomed out */
 .heroStage {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.8fr);
-  gap: clamp(1rem, 3vw, 2rem);
-  align-items: center;
   width: 100%;
   opacity: 0;
   transform: translateY(12px);
   transition: opacity 0.65s ease, transform 0.65s ease;
+}
+
+.heroStageTrack {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.8fr);
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: center;
+}
+
+.heroStagePager {
+  display: none;
+}
+
+.heroStageSwipeHint {
+  display: none;
 }
 
 .heroStage.is-entered {
@@ -1185,6 +1251,35 @@ html:not(.theme-light) .askSamirMdStrong {
   color: var(--lab-issue);
 }
 
+.askSamirStreamText {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--text-light);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.askSamirCursor {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.9em;
+  margin-left: 0.05rem;
+  vertical-align: text-bottom;
+  background: var(--lab-accent);
+  animation: askSamirCursorBlink 0.9s step-end infinite;
+}
+
+@keyframes askSamirCursorBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
 .askSamirThinking {
   margin: 0;
   max-width: 82%;
@@ -1317,33 +1412,19 @@ html:not(.theme-light) .askSamirMdStrong {
   cursor: wait;
 }
 
-.askSamirInputWrap {
-  position: relative;
+.askSamirForm {
   display: flex;
-  flex-direction: column;
   align-items: stretch;
-  padding-top: 0.15rem;
-}
-
-.askSamirInputWrap::before {
-  content: "";
-  position: absolute;
-  top: -1.5rem;
-  left: 0;
-  right: 0;
-  height: 1.5rem;
+  gap: 0.35rem;
 }
 
 .askSamirExpand {
-  position: absolute;
-  top: -1.35rem;
-  left: 50%;
-  translate: -50% 0;
-  z-index: 2;
   appearance: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
+  align-self: center;
   border: 0;
   background: transparent;
   color: var(--lab-muted);
@@ -1357,11 +1438,12 @@ html:not(.theme-light) .askSamirMdStrong {
     opacity 0.18s ease,
     visibility 0.18s ease,
     color 0.15s ease,
-    translate 0.15s ease;
+    transform 0.15s ease;
 }
 
-.askSamirInputWrap:hover .askSamirExpand,
-.askSamirInputWrap:focus-within .askSamirExpand {
+.askSamirForm:hover .askSamirExpand,
+.askSamirForm:focus-within .askSamirExpand,
+.askSamirChat.is-expanded .askSamirExpand {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -1369,7 +1451,7 @@ html:not(.theme-light) .askSamirMdStrong {
 
 .askSamirExpand:hover {
   color: var(--lab-accent);
-  translate: -50% -1px;
+  transform: translateY(-1px);
 }
 
 .askSamirChat.is-expanded .askSamirAnswer {
@@ -1393,19 +1475,18 @@ html:not(.theme-light) .askSamirMdStrong {
   );
 }
 
-.askSamirForm {
-  display: flex;
-  align-items: stretch;
-  gap: 0.4rem;
-}
-
 .askSamirField {
   position: relative;
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+  border-radius: 3px;
+  isolation: isolate;
 }
 
 .askSamirInput {
+  position: relative;
+  z-index: 1;
   width: 100%;
   box-sizing: border-box;
   appearance: none;
@@ -1419,7 +1500,7 @@ html:not(.theme-light) .askSamirMdStrong {
   padding: 0.55rem 0.7rem;
   outline: none;
   resize: none;
-  overflow-y: hidden;
+  overflow: hidden;
   min-height: calc(0.78rem * 1.35 + 1.1rem);
   transition: border-color 0.18s ease, background 0.18s ease;
 }
@@ -1461,17 +1542,23 @@ html:not(.theme-light) .askSamirMdStrong {
 
 .askSamirPlaceholder {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-start;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  z-index: 0;
+  box-sizing: border-box;
+  display: block;
   padding: 0.55rem 0.7rem;
   font-size: 0.78rem;
   line-height: 1.35;
   color: var(--lab-muted);
   pointer-events: none;
-  white-space: normal;
+  white-space: nowrap;
   overflow: hidden;
+  overflow-wrap: normal;
   text-overflow: ellipsis;
+  max-height: 100%;
   opacity: 0;
   transform: translateY(4px);
   transition: opacity 0.28s ease, transform 0.28s ease;
@@ -1751,13 +1838,17 @@ html:not(.theme-light) .askSamirMdStrong {
   margin-bottom: 0;
 }
 
-.filterRows {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+.filterRowsShell {
   flex: 0 0 auto;
   position: relative;
   z-index: 50;
+  overflow: visible;
+}
+
+.filterRowsScroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
   overflow: visible;
 }
 
@@ -1896,6 +1987,7 @@ html:not(.theme-light) .askSamirMdStrong {
   flex: 0 0 auto;
   min-width: 0;
   z-index: 1;
+  cursor: pointer;
 }
 
 .platformCluster.has-services:hover,
@@ -2033,6 +2125,15 @@ html:not(.theme-light) .askSamirMdStrong {
   transform: translateY(-1px);
 }
 
+@media (hover: none) {
+  .toolFilterItem:hover {
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-muted);
+    transform: none;
+  }
+}
+
 .toolFilterItem.is-related {
   border-color: color-mix(in srgb, var(--lab-accent) 40%, var(--lab-line));
   background: color-mix(in srgb, var(--lab-accent) 10%, var(--bg-panel));
@@ -2058,6 +2159,13 @@ html:not(.theme-light) .askSamirMdStrong {
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
+}
+
+.toolFilterIcon i,
+.toolFilterIcon svg,
+.toolFilterIcon span {
+  pointer-events: none;
 }
 
 .toolFilterIcon i,
@@ -2098,6 +2206,21 @@ html:not(.theme-light) .askSamirMdStrong {
   letter-spacing: 0.03em;
   box-shadow: 0 8px 20px rgba(18, 21, 28, 0.12);
   transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.filterTooltip.is-floating,
+.platformServicesTooltip.is-floating {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 220;
+  opacity: 1;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(0);
+}
+
+.platformServicesTooltip.is-floating {
+  pointer-events: auto;
 }
 
 .filterTooltip::after {
@@ -2272,7 +2395,9 @@ html:not(.theme-light) .askSamirMdStrong {
   border-radius: 6px;
   background: color-mix(in srgb, var(--bg-panel) 92%, transparent);
   padding: 0.55rem 0.7rem 0.45rem;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .projectPreviewHeader {
@@ -2565,6 +2690,35 @@ html:not(.theme-light) .askSamirMdStrong {
     max-height: 180px;
   }
 
+  .projectPreviewPane {
+    min-height: 0;
+    max-height: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filterRowsShell,
+  .filterRowsScroll {
+    max-height: 6.35rem;
+  }
+
+  .filterRowsScroll {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 0.1rem;
+  }
+
+  .filterRowsScroll::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .filterRowsScroll::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--lab-muted) 45%, transparent);
+    border-radius: 999px;
+  }
+
   .projectTileGrid {
     grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
   }
@@ -2773,56 +2927,276 @@ html:not(.theme-light) .askSamirMdStrong {
 }
 
 @media (max-width: 900px) {
-  .heroStage {
-    grid-template-columns: 1fr;
+  :root {
+    --logo-hero-size: clamp(1.65rem, 6.5vw, 2.35rem);
+    --logo-hero-top: 0.6rem;
+    --logo-decor-top: calc(var(--logo-hero-top) + var(--logo-hero-size) * 0.22);
   }
 
-  .aboutPanels {
-    grid-template-columns: 1fr;
+  .labLogo.is-compact {
+    font-size: 0.76rem;
+  }
+
+  .heroStageTrack {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0;
+    position: relative;
+  }
+
+  .heroStageTrack::-webkit-scrollbar {
+    display: none;
+  }
+
+  .heroCopy,
+  .heroFeature {
+    flex: 0 0 100%;
+    min-width: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    box-sizing: border-box;
+  }
+
+  .heroCopy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.5rem 1rem;
+    box-sizing: border-box;
+  }
+
+  .heroFeature {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: calc(100% - 2rem);
+    margin-inline: 1rem;
+    padding: 0.85rem;
+    box-sizing: border-box;
+  }
+
+  .heroKicker {
+    text-align: center;
+  }
+
+  .heroName {
+    text-align: center;
+  }
+
+  .heroTagline,
+  .heroSupport {
+    text-align: center;
+    max-width: 22rem;
+  }
+
+  .heroActions {
+    justify-content: center;
+  }
+
+  .heroStageSwipeHint,
+  .stageSwipeHint {
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.2rem;
+    margin: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .heroStageSwipeHintText,
+  .stageSwipeHintText {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--lab-muted);
+    animation: heroSwipeHintPulse 2.8s ease-in-out infinite;
+  }
+
+  @keyframes heroSwipeHintPulse {
+    0%,
+    100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 0.82;
+    }
+  }
+
+  .heroStage {
+    grid-template-columns: unset;
+    position: relative;
+  }
+
+  .aboutPanelsCarousel {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: visible;
+  }
+
+  .aboutPanelsTrack {
+    display: flex;
+    width: 100%;
+    min-height: 8.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pinch-zoom;
+    scrollbar-width: none;
+    gap: 0;
+    flex: 0 0 auto;
+    align-items: stretch;
+  }
+
+  .aboutPanelsTrack::-webkit-scrollbar {
+    display: none;
+  }
+
+  .aboutPanelSlide {
+    flex: 0 0 100%;
+    min-width: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    box-sizing: border-box;
+    padding: 0 1rem;
+    display: flex;
+    align-items: stretch;
+    min-height: 100%;
+  }
+
+  .aboutPanel {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 8.5rem;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .aboutPanelBody {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .aboutPanelsCarousel .stageSwipeHint {
+    position: static;
+    margin-top: 0.35rem;
+    flex: 0 0 auto;
   }
 
   .aboutPortrait {
-    width: min(52vw, 9.5rem);
+    width: min(44vw, 8rem);
+    margin: 0;
+  }
+
+  .section-about .fullScreenInner {
+    overflow: hidden;
+    justify-content: center;
+    padding-bottom: 1.25rem;
+  }
+
+  .section-about .aboutStage {
+    gap: 0.55rem;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    justify-content: center;
   }
 
   .section-home .fullScreenInner {
-    padding-bottom: 3rem;
+    display: grid;
+    grid-template-rows: minmax(2.5rem, 1.35fr) auto minmax(5rem, 0.9fr);
+    align-content: stretch;
+    justify-content: stretch;
+    justify-items: stretch;
+    min-height: 100%;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .section-home .heroStage {
+    grid-row: 2;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    min-height: 0;
+    max-height: none;
+    padding-top: 0;
+    box-sizing: border-box;
+  }
+
+  .section-home .heroStageTrack {
+    flex: 0 1 auto;
+    align-items: stretch;
+    max-height: 100%;
+    padding-bottom: 1.35rem;
+  }
+
+  .section-home.is-chat-expanded .heroStage {
+    opacity: 0.12;
+    filter: blur(6px);
   }
 
   .askSamirChat {
-    top: 64%;
-    bottom: 2.7rem;
-    width: min(100% - 1.25rem, 32rem);
+    top: auto;
+    bottom: 2.4rem;
+    width: min(100% - 1rem, 32rem);
+  }
+
+  .askSamirInput,
+  .askSamirPlaceholder {
+    font-size: 16px;
+  }
+
+  .askSamirInput {
+    min-height: calc(16px * 1.35 + 1.1rem);
+    touch-action: manipulation;
   }
 
   .askSamirChat.is-expanded {
-    top: auto;
+    top: 0.85rem;
     bottom: 2.4rem;
-    max-height: calc(100% - 3rem);
+    max-height: none;
+    justify-content: flex-end;
+    z-index: 8;
   }
 
   .askSamirChat.is-expanded .askSamirAnswer {
     min-height: 0;
-    height: min(66vh, 580px);
-    max-height: min(66vh, 580px);
+    height: min(52vh, 480px);
+    max-height: min(52vh, 480px);
   }
 
-  .askSamirAnswer {
-    max-height: min(30vh, 14rem);
-  }
-
-  .askSamirPlaceholder {
-    white-space: normal;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    align-items: flex-start;
-    padding-top: 0.45rem;
+  .askSamirChat.has-transcript:not(.is-expanded) .askSamirAnswer {
+    max-height: min(16vh, 6.25rem);
   }
 
   .heroFeature {
     transform: none;
-    min-height: 200px;
+    min-height: 0;
   }
 
   .experienceGrid {
@@ -2833,24 +3207,17 @@ html:not(.theme-light) .askSamirMdStrong {
     min-height: 0;
   }
 
-  .experienceCard.is-current {
-    border-color: color-mix(in srgb, var(--lab-accent) 65%, var(--lab-line));
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--lab-accent) 28%, transparent);
+  .experienceHook {
+    display: none;
   }
 
   .experienceImpact {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
+    display: none;
   }
 
-  .experienceImpactGrid {
-    grid-template-columns: 1fr;
-    gap: 0.85rem;
-  }
-
-  .experienceImpactCopy {
-    font-size: 0.92rem;
+  .experienceCard.is-current {
+    border-color: color-mix(in srgb, var(--lab-accent) 65%, var(--lab-line));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--lab-accent) 28%, transparent);
   }
 
   .deployRow {
@@ -2892,6 +3259,8 @@ html:not(.theme-light) .askSamirMdStrong {
   .scrollCue,
   .scrollCueArrow,
   .askSamirPlaceholder,
+  .heroStageSwipeHintText,
+  .stageSwipeHintText,
   .experienceImpact {
     animation: none !important;
     transition: none !important;
@@ -2902,9 +3271,15 @@ html:not(.theme-light) .askSamirMdStrong {
   .heroStage,
   .scrollCue,
   .askSamirPlaceholder,
+  .heroStageSwipeHintText,
+  .stageSwipeHintText,
   .experienceImpact {
     opacity: 1;
     transform: none;
+  }
+
+  .heroStageSwipeHintText {
+    opacity: 0.65;
   }
 
   .section-home.is-chat-expanded .scrollCue {

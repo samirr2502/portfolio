@@ -10,6 +10,7 @@ export const CHAR_LIMIT = 3000;
 
 const API_BASE = import.meta.env.VITE_CHAT_API_URL || "";
 const CHAT_STORAGE_KEY = "askSamir.transcript.v1";
+export const CHAT_TRANSCRIPT_EVENT = "askSamir:transcript";
 const PERSISTED_ROLES = new Set(["user", "assistant", "limit", "error"]);
 
 const contact = about.find((item) => item.id === "contact") || {};
@@ -143,6 +144,10 @@ function normalizeStoredMessage(raw) {
     message.suggestContact = true;
   }
 
+  if (raw.streaming === true) {
+    message.streaming = false;
+  }
+
   return message;
 }
 
@@ -166,10 +171,16 @@ export function saveChatTranscript(messages) {
   try {
     if (!Array.isArray(messages) || messages.length === 0) {
       window.sessionStorage.removeItem(CHAT_STORAGE_KEY);
+      window.dispatchEvent(
+        new CustomEvent(CHAT_TRANSCRIPT_EVENT, { detail: { messages: [] } })
+      );
       return;
     }
 
     window.sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+    window.dispatchEvent(
+      new CustomEvent(CHAT_TRANSCRIPT_EVENT, { detail: { messages } })
+    );
   } catch {
     /* storage full or unavailable */
   }
@@ -178,6 +189,9 @@ export function saveChatTranscript(messages) {
 export function clearChatTranscript() {
   try {
     window.sessionStorage.removeItem(CHAT_STORAGE_KEY);
+    window.dispatchEvent(
+      new CustomEvent(CHAT_TRANSCRIPT_EVENT, { detail: { messages: [] } })
+    );
   } catch {
     /* ignore */
   }
@@ -194,9 +208,137 @@ export function getHighestMessageSeq(messages) {
 }
 
 /**
+ * Stream a chat reply token-by-token via SSE.
  * @param {string} question
- * @returns {Promise<{ answer: string, used?: number, limited?: boolean, phone?: string, email?: string, telHref?: string, mailtoHref?: string }>}
+ * @param {{ onToken?: (delta: string) => void, onDone?: (result: object) => void, signal?: AbortSignal }} handlers
  */
+export async function askAboutSamirStream(question, { onToken, onDone, signal } = {}) {
+  const trimmed = String(question || "").trim();
+  if (!trimmed) {
+    throw new Error("Ask a question about Samir first.");
+  }
+
+  if (trimmed.length > CHAR_LIMIT) {
+    throw new Error(`Keep it under ${CHAR_LIMIT.toLocaleString()} characters.`);
+  }
+
+  const response = await fetch(`${API_BASE}/api/chat/stream`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+    },
+    body: JSON.stringify({ question: trimmed }),
+    signal,
+  });
+
+  const contentType = response.headers.get("content-type") || "";
+
+  if (contentType.includes("application/json")) {
+    let payload = null;
+    try {
+      payload = await response.json();
+    } catch {
+      payload = null;
+    }
+
+    if (!response.ok) {
+      throw new Error(payload?.error || "Something went wrong reaching the chat service.");
+    }
+
+    if (payload?.limited) {
+      syncUsage({ ...payload, used: MESSAGE_LIMIT, remaining: 0, limited: true });
+      return {
+        limited: true,
+        ...buildLimitReachedMessage(),
+        used: MESSAGE_LIMIT,
+      };
+    }
+
+    syncUsage(payload);
+    const result = {
+      answer: payload.answer,
+      used: payload.used,
+      suggestContact: Boolean(payload.suggestContact ?? suggestsDirectContact(payload.answer)),
+    };
+    onDone?.(result);
+    return result;
+  }
+
+  if (!response.ok || !response.body) {
+    throw new Error("Something went wrong reaching the chat service.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let result = null;
+
+  const dispatchEvent = (block) => {
+    const lines = block.split("\n");
+    let eventName = "message";
+    let dataLine = "";
+
+    for (const line of lines) {
+      if (line.startsWith("event:")) {
+        eventName = line.slice(6).trim();
+      } else if (line.startsWith("data:")) {
+        dataLine += line.slice(5).trim();
+      }
+    }
+
+    if (!dataLine) return;
+
+    let payload;
+    try {
+      payload = JSON.parse(dataLine);
+    } catch {
+      return;
+    }
+
+    if (eventName === "token" && payload.delta) {
+      onToken?.(payload.delta);
+      return;
+    }
+
+    if (eventName === "error") {
+      throw new Error(payload.error || "Stream failed.");
+    }
+
+    if (eventName === "done") {
+      syncUsage(payload);
+      result = {
+        answer: payload.answer,
+        used: payload.used,
+        suggestContact: Boolean(payload.suggestContact ?? suggestsDirectContact(payload.answer)),
+      };
+      onDone?.(result);
+    }
+  };
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() || "";
+
+    for (const part of parts) {
+      if (part.trim()) dispatchEvent(part);
+    }
+  }
+
+  if (buffer.trim()) dispatchEvent(buffer);
+
+  if (!result) {
+    throw new Error("The response ended before it finished.");
+  }
+
+  return result;
+}
+
+/** Non-streaming fallback (health checks, tests). */
 export async function askAboutSamir(question) {
   const trimmed = String(question || "").trim();
   if (!trimmed) {

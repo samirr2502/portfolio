@@ -3,7 +3,7 @@ import { FaCompress, FaExpand, FaTrash } from "react-icons/fa";
 import ContactIconLinks from "./ContactIconLinks";
 import ChatMarkdown from "./ChatMarkdown";
 import {
-  askAboutSamir,
+  askAboutSamirStream,
   buildLimitReachedMessage,
   CHAR_LIMIT,
   clearChatTranscript,
@@ -63,12 +63,19 @@ function AskSamirContactRow() {
   );
 }
 
-function AssistantMessage({ text, suggestContact }) {
-  const showContact = suggestContact || suggestsDirectContact(text);
+function AssistantMessage({ text, suggestContact, streaming }) {
+  const showContact = !streaming && (suggestContact || suggestsDirectContact(text));
 
   return (
     <div className="askSamirMessage is-assistant">
-      <ChatMarkdown content={text} />
+      {streaming ? (
+        <p className="askSamirStreamText">
+          {text}
+          <span className="askSamirCursor" aria-hidden="true" />
+        </p>
+      ) : (
+        <ChatMarkdown content={text} />
+      )}
       {showContact && <AskSamirContactRow />}
     </div>
   );
@@ -102,7 +109,7 @@ function AskSamirChat() {
   const [placeholderVisible, setPlaceholderVisible] = useState(true);
   const [focused, setFocused] = useState(false);
   const [messages, setMessages] = useState(initialTranscript);
-  const [status, setStatus] = useState("idle"); // idle | loading
+  const [status, setStatus] = useState("idle"); // idle | streaming
   const [used, setUsed] = useState(() => getUsedMessages());
   const [limited, setLimited] = useState(
     () => isMockLimitReached() || initialTranscript.some((message) => message.role === "limit")
@@ -184,7 +191,7 @@ function AskSamirChat() {
       return undefined;
     }
 
-    const showTranscript = messages.length > 0 || status === "loading";
+    const showTranscript = messages.length > 0 || status === "streaming";
     if (!showTranscript) {
       setHeroChatLift(0);
       return undefined;
@@ -237,7 +244,7 @@ function AskSamirChat() {
   }, [expanded]);
 
   const clearChat = () => {
-    if (status === "loading") return;
+    if (status === "streaming") return;
     setMessages([]);
     clearChatTranscript();
     setStatus("idle");
@@ -246,7 +253,7 @@ function AskSamirChat() {
   };
 
   const previewLimitHit = () => {
-    if (status === "loading") return;
+    if (status === "streaming") return;
     forceMockLimitHit();
     const payload = buildLimitReachedMessage();
     setUsed(MESSAGE_LIMIT);
@@ -268,7 +275,7 @@ function AskSamirChat() {
   };
 
   const resetLimitForTesting = () => {
-    if (status === "loading") return;
+    if (status === "streaming") return;
     resetMockUsage();
     setUsed(0);
     setLimited(false);
@@ -277,27 +284,42 @@ function AskSamirChat() {
 
   const submit = async (event) => {
     event.preventDefault();
-    if (limited || status === "loading") return;
+    if (limited || status === "streaming") return;
 
     const nextQuestion = question.trim() || SAMPLE_QUESTIONS[placeholderIndex];
     if (!nextQuestion) return;
 
+    const assistantId = nextMessageId();
+
+    setExpanded(true);
     setQuestion("");
-    setStatus("loading");
+    setStatus("streaming");
     stickToBottomRef.current = true;
     requestAnimationFrame(() => syncInputHeight(inputRef.current));
     setMessages((prev) => [
       ...prev,
       { id: nextMessageId(), role: "user", text: nextQuestion },
+      { id: assistantId, role: "assistant", text: "", streaming: true },
     ]);
 
     try {
-      const result = await askAboutSamir(nextQuestion);
+      const result = await askAboutSamirStream(nextQuestion, {
+        onToken: (delta) => {
+          setMessages((prev) =>
+            prev.map((message) =>
+              message.id === assistantId
+                ? { ...message, text: `${message.text}${delta}` }
+                : message
+            )
+          );
+        },
+      });
+
       if (result.limited) {
         setLimited(true);
         setUsed(MESSAGE_LIMIT);
         setMessages((prev) => [
-          ...prev,
+          ...prev.filter((message) => message.id !== assistantId),
           {
             id: nextMessageId(),
             role: "limit",
@@ -307,19 +329,22 @@ function AskSamirChat() {
         ]);
       } else {
         setUsed(typeof result.used === "number" ? result.used : getUsedMessages());
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: nextMessageId(),
-            role: "assistant",
-            text: result.answer,
-            suggestContact: result.suggestContact,
-          },
-        ]);
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === assistantId
+              ? {
+                  ...message,
+                  text: result.answer,
+                  streaming: false,
+                  suggestContact: result.suggestContact,
+                }
+              : message
+          )
+        );
       }
     } catch (err) {
       setMessages((prev) => [
-        ...prev,
+        ...prev.filter((message) => message.id !== assistantId),
         {
           id: nextMessageId(),
           role: "error",
@@ -332,7 +357,7 @@ function AskSamirChat() {
     }
   };
 
-  const showTranscript = messages.length > 0 || status === "loading";
+  const showTranscript = messages.length > 0 || status === "streaming";
   const charCount = question.length;
   const nearCharLimit = charCount >= CHAR_LIMIT * 0.85;
   const activePlaceholder = limited
@@ -372,17 +397,58 @@ function AskSamirChat() {
                   key={message.id}
                   text={message.text}
                   suggestContact={message.suggestContact}
+                  streaming={message.streaming}
                 />
               ) : (
                 <PlainMessage key={message.id} message={message} />
               )
             )}
-            {status === "loading" && <p className="askSamirThinking">Thinking…</p>}
           </div>
         </div>
       )}
 
-      <div className="askSamirInputWrap">
+      <form className="askSamirForm" onSubmit={submit}>
+        <div className="askSamirField">
+          <textarea
+            ref={inputRef}
+            className="askSamirInput"
+            value={question}
+            onChange={(event) => setQuestion(event.target.value.slice(0, CHAR_LIMIT))}
+            onFocus={() => {
+              setFocused(true);
+              setExpanded(true);
+            }}
+            onClick={() => setExpanded(true)}
+            onBlur={() => setFocused(false)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                event.currentTarget.form?.requestSubmit();
+              }
+            }}
+            aria-label="Question or job description about Samir"
+            rows={1}
+            maxLength={CHAR_LIMIT}
+            disabled={status === "streaming" || limited}
+          />
+          {!question && (
+            <span
+              className={`askSamirPlaceholder ${placeholderVisible || limited ? "is-visible" : ""}`}
+              aria-hidden="true"
+            >
+              {activePlaceholder}
+            </span>
+          )}
+        </div>
+        <button
+          type="submit"
+          className={`askSamirSend${status === "streaming" ? " is-loading" : ""}${limited ? " is-blocked" : ""}`}
+          disabled={status === "streaming" || limited}
+          aria-label={limited ? "Monthly limit reached" : "Send question"}
+          title={limited ? "Monthly AI limit reached" : undefined}
+        >
+          {limited ? "Limit" : "Ask"}
+        </button>
         <button
           type="button"
           className="askSamirExpand"
@@ -396,47 +462,7 @@ function AskSamirChat() {
             <FaExpand size={12} aria-hidden="true" />
           )}
         </button>
-
-        <form className="askSamirForm" onSubmit={submit}>
-        <div className="askSamirField">
-          <textarea
-            ref={inputRef}
-            className="askSamirInput"
-            value={question}
-            onChange={(event) => setQuestion(event.target.value.slice(0, CHAR_LIMIT))}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                event.currentTarget.form?.requestSubmit();
-              }
-            }}
-            aria-label="Question or job description about Samir"
-            rows={1}
-            maxLength={CHAR_LIMIT}
-            disabled={status === "loading" || limited}
-          />
-          {!question && (
-            <span
-              className={`askSamirPlaceholder ${placeholderVisible || limited ? "is-visible" : ""}`}
-              aria-hidden="true"
-            >
-              {activePlaceholder}
-            </span>
-          )}
-        </div>
-        <button
-          type="submit"
-          className={`askSamirSend${status === "loading" ? " is-loading" : ""}${limited ? " is-blocked" : ""}`}
-          disabled={status === "loading" || limited}
-          aria-label={limited ? "Monthly limit reached" : "Send question"}
-          title={limited ? "Monthly AI limit reached" : undefined}
-        >
-          {limited ? "Limit" : "Ask"}
-        </button>
       </form>
-      </div>
 
       <div className="askSamirLabelRow">
         <p className="askSamirLabel">
@@ -457,7 +483,7 @@ function AskSamirChat() {
             type="button"
             className="askSamirTestLimit"
             onClick={limited ? resetLimitForTesting : previewLimitHit}
-            disabled={status === "loading"}
+            disabled={status === "streaming"}
             title={limited ? "Reset mock quota" : "Preview 25-message limit"}
           >
             {limited ? "Reset" : "Hit limit"}
@@ -468,7 +494,7 @@ function AskSamirChat() {
             type="button"
             className="askSamirClear"
             onClick={clearChat}
-            disabled={status === "loading"}
+            disabled={status === "streaming"}
             aria-label="Clear chat history"
             title="Clear chat"
           >

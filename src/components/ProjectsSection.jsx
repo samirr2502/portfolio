@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   FaDesktop,
   FaExternalLinkAlt,
@@ -28,6 +29,64 @@ const DEVICE_OPTIONS = [
   { id: "tablet", label: "Tablet", Icon: FaTabletAlt },
   { id: "phone", label: "Mobile", Icon: FaMobileAlt },
 ];
+
+function getFloatingCoords(el, gap = 8) {
+  if (!el) return null;
+  const rect = el.getBoundingClientRect();
+  return {
+    left: rect.left + rect.width / 2,
+    top: rect.bottom + gap,
+  };
+}
+
+function useFloatingAnchor(active) {
+  const ref = useRef(null);
+  const [coords, setCoords] = useState(null);
+
+  const sync = useCallback(() => {
+    if (!active || !ref.current) {
+      setCoords(null);
+      return;
+    }
+    setCoords(getFloatingCoords(ref.current));
+  }, [active]);
+
+  useLayoutEffect(() => {
+    if (!active) {
+      setCoords(null);
+      return undefined;
+    }
+
+    sync();
+    window.addEventListener("scroll", sync, true);
+    window.addEventListener("resize", sync);
+    const scrollEl = ref.current?.closest(".filterRowsScroll");
+    scrollEl?.addEventListener("scroll", sync, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", sync, true);
+      window.removeEventListener("resize", sync);
+      scrollEl?.removeEventListener("scroll", sync);
+    };
+  }, [active, sync]);
+
+  return { ref, coords };
+}
+
+function useTouchUi() {
+  const [touchUi, setTouchUi] = useState(() =>
+    window.matchMedia("(max-width: 900px)").matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 900px)");
+    const sync = () => setTouchUi(mq.matches);
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  return touchUi;
+}
 
 function DeviceFrame({ type, src, emptyLabel, orientation = "portrait" }) {
   const landscape = type === "phone" && orientation === "landscape";
@@ -60,35 +119,246 @@ function TechIconButton({
   onHover,
   showLabel = false,
   tooltip = true,
+  touchUi = false,
 }) {
   const label = tool.label;
+  const [tipActive, setTipActive] = useState(false);
+  const { ref, coords } = useFloatingAnchor(tooltip && tipActive);
+
+  const showTip = () => setTipActive(true);
+  const hideTip = () => setTipActive(false);
+
+  const tipRef = useRef(null);
+
+  useEffect(() => {
+    if (!touchUi || !tooltip || !tipActive) return undefined;
+
+    const close = (event) => {
+      if (
+        ref.current?.contains(event.target) ||
+        tipRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+      setTipActive(false);
+    };
+
+    const timer = window.setTimeout(() => {
+      document.addEventListener("click", close, true);
+      document.addEventListener("pointerdown", close, true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("click", close, true);
+      document.removeEventListener("pointerdown", close, true);
+    };
+  }, [touchUi, tooltip, tipActive, ref]);
+
+  const handleClick = (event) => {
+    if (touchUi && tooltip) {
+      event.stopPropagation();
+      setTipActive(true);
+    }
+    onToggle(tool.id);
+  };
 
   return (
-    <button
-      type="button"
-      className={`toolFilterItem ${showLabel ? "toolFilterItem--chip" : "toolFilterItem--iconOnly"} ${isSelected ? "is-selected" : ""} ${isPreview ? "is-preview" : ""} ${isRelated ? "is-related" : ""} ${tooltip ? "has-tooltip" : ""}`}
-      onMouseEnter={() => onHover?.(tool.id)}
-      onFocus={() => onHover?.(tool.id)}
-      onClick={() => onToggle(tool.id)}
-      aria-pressed={isSelected}
-      aria-label={label}
-    >
-      {tool.icon ? (
-        <span className="toolFilterIcon" dangerouslySetInnerHTML={{ __html: tool.icon }} />
-      ) : (
-        <span className="toolFilterLabel">{tool.short || tool.label}</span>
-      )}
-      {showLabel && tool.icon ? <span className="toolFilterLabel">{tool.short || tool.label}</span> : null}
-      {tooltip ? (
-        <span className="filterTooltip" role="tooltip">
-          {label}
-        </span>
-      ) : null}
-    </button>
+    <>
+      <button
+        ref={ref}
+        type="button"
+        className={`toolFilterItem ${showLabel ? "toolFilterItem--chip" : "toolFilterItem--iconOnly"} ${isSelected ? "is-selected" : ""} ${!touchUi && isPreview ? "is-preview" : ""} ${isRelated ? "is-related" : ""} ${tooltip ? "has-tooltip" : ""}`}
+        onMouseEnter={
+          touchUi
+            ? undefined
+            : () => {
+                showTip();
+                onHover?.(tool.id);
+              }
+        }
+        onMouseLeave={touchUi ? undefined : hideTip}
+        onFocus={
+          touchUi
+            ? undefined
+            : () => {
+                showTip();
+                onHover?.(tool.id);
+              }
+        }
+        onBlur={touchUi ? undefined : hideTip}
+        onClick={handleClick}
+        aria-pressed={isSelected}
+        aria-label={label}
+      >
+        {tool.icon ? (
+          <span className="toolFilterIcon" dangerouslySetInnerHTML={{ __html: tool.icon }} />
+        ) : (
+          <span className="toolFilterLabel">{tool.short || tool.label}</span>
+        )}
+        {showLabel && tool.icon ? (
+          <span className="toolFilterLabel">{tool.short || tool.label}</span>
+        ) : null}
+      </button>
+      {tooltip && tipActive && coords
+        ? createPortal(
+            <span
+              ref={tipRef}
+              className="filterTooltip is-floating is-visible"
+              style={{ left: `${coords.left}px`, top: `${coords.top}px` }}
+              role="tooltip"
+            >
+              {label}
+            </span>,
+            document.body
+          )
+        : null}
+    </>
+  );
+}
+
+function PlatformFilterCluster({
+  tool,
+  isSelected,
+  isPreview,
+  isRelated,
+  onToggle,
+  onHover,
+  selectedTools,
+  relatedTools,
+  toggleTool,
+  touchUi = false,
+}) {
+  const tipRef = useRef(null);
+  const closeTimerRef = useRef(null);
+  const [open, setOpen] = useState(false);
+  const hasServices = tool.children?.length > 0;
+  const { ref, coords } = useFloatingAnchor(open && hasServices);
+
+  const cancelClose = () => {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimerRef.current = window.setTimeout(() => setOpen(false), 120);
+  };
+
+  useEffect(() => () => cancelClose(), []);
+
+  useEffect(() => {
+    if (!touchUi || !open) return undefined;
+
+    const close = (event) => {
+      if (ref.current?.contains(event.target) || tipRef.current?.contains(event.target)) {
+        return;
+      }
+      setOpen(false);
+    };
+
+    const timer = window.setTimeout(() => {
+      document.addEventListener("click", close, true);
+      document.addEventListener("pointerdown", close, true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("click", close, true);
+      document.removeEventListener("pointerdown", close, true);
+    };
+  }, [touchUi, open, ref]);
+
+  const handleTouchActivate = (event) => {
+    if (!touchUi || !hasServices) return;
+    event.stopPropagation();
+    setOpen((current) => !current);
+  };
+
+  const handlePlatformToggle = (toolId) => {
+    if (touchUi && hasServices) return;
+    onToggle(toolId);
+  };
+
+  return (
+    <>
+      <div
+        ref={ref}
+        className={`platformCluster${hasServices ? " has-services" : ""}`}
+        onClick={handleTouchActivate}
+        onMouseEnter={
+          touchUi
+            ? undefined
+            : () => {
+                cancelClose();
+                if (hasServices) setOpen(true);
+                onHover?.(tool.id);
+              }
+        }
+        onMouseLeave={touchUi ? undefined : scheduleClose}
+        onFocus={
+          touchUi
+            ? undefined
+            : () => {
+                if (hasServices) setOpen(true);
+              }
+        }
+        onBlur={(event) => {
+          if (touchUi) return;
+          if (event.currentTarget.contains(event.relatedTarget) || tipRef.current?.contains(event.relatedTarget)) {
+            return;
+          }
+          setOpen(false);
+        }}
+      >
+        <TechIconButton
+          tool={tool}
+          tooltip={!hasServices}
+          touchUi={touchUi}
+          isSelected={isSelected}
+          isPreview={!touchUi && isPreview}
+          isRelated={isRelated}
+          onToggle={handlePlatformToggle}
+          onHover={touchUi ? undefined : onHover}
+        />
+      </div>
+      {hasServices && open && coords
+        ? createPortal(
+            <div
+              ref={tipRef}
+              className="platformServicesTooltip is-floating is-visible"
+              style={{ left: `${coords.left}px`, top: `${coords.top}px` }}
+              role="tooltip"
+              onMouseEnter={touchUi ? undefined : cancelClose}
+              onMouseLeave={touchUi ? undefined : scheduleClose}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <span className="platformServicesTitle">{tool.label}</span>
+              <div className="platformServicesList">
+                {tool.children.map((child) => (
+                  <button
+                    key={child.id}
+                    type="button"
+                    className={`platformServiceChip ${selectedTools.includes(child.id) ? "is-selected" : ""} ${relatedTools.has(child.id) ? "is-related" : ""}`}
+                    onClick={() => toggleTool(child.id)}
+                    aria-pressed={selectedTools.includes(child.id)}
+                  >
+                    {child.short || child.label}
+                  </button>
+                ))}
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
+    </>
   );
 }
 
 function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
+  const touchUi = useTouchUi();
   const languages = getLanguageTools();
   const platforms = getPlatformTools();
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -102,7 +372,7 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
   const activeTools =
     selectedTools.length > 0
       ? selectedTools
-      : !projectLocked && hoveredTool
+      : !touchUi && !projectLocked && hoveredTool
         ? [hoveredTool]
         : [];
 
@@ -124,7 +394,7 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
     [visibleProjects]
   );
 
-  const activeProjectId = lockedProjectId || hoveredProjectId;
+  const activeProjectId = lockedProjectId || (!touchUi ? hoveredProjectId : null);
   const activeProject =
     visibleProjects.find((item) => item.id === activeProjectId) || null;
 
@@ -241,7 +511,8 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
         <h2>Projects & stack</h2>
       </header>
 
-      <div className="filterRows">
+      <div className="filterRowsShell">
+        <div className="filterRowsScroll">
         <div className="filterRow filterRow--centered toolsFilterBar">
           <div className="toolsFilterClearRow">
             {selectedCategories.length > 0 ? (
@@ -319,23 +590,35 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
           </div>
           <div
             className="toolsFilterList toolsFilterList--singleRow"
-            onMouseLeave={() => {
-              if (selectedTools.length === 0 && !projectLocked) setHoveredTool(null);
-            }}
+            onMouseLeave={
+              touchUi
+                ? undefined
+                : () => {
+                    if (selectedTools.length === 0 && !projectLocked) setHoveredTool(null);
+                  }
+            }
           >
             {languages.map((tool) => (
               <TechIconButton
                 key={tool.id}
                 tool={tool}
+                touchUi={touchUi}
                 isSelected={selectedTools.includes(tool.id)}
                 isPreview={
-                  !projectLocked && selectedTools.length === 0 && hoveredTool === tool.id
+                  !touchUi &&
+                  !projectLocked &&
+                  selectedTools.length === 0 &&
+                  hoveredTool === tool.id
                 }
                 isRelated={relatedTools.has(tool.id)}
                 onToggle={toggleTool}
-                onHover={(id) => {
-                  if (!projectLocked && selectedTools.length === 0) setHoveredTool(id);
-                }}
+                onHover={
+                  touchUi
+                    ? undefined
+                    : (id) => {
+                        if (!projectLocked && selectedTools.length === 0) setHoveredTool(id);
+                      }
+                }
               />
             ))}
           </div>
@@ -358,60 +641,52 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
                 <span>Stack</span>
               </button>
             ) : (
-              <span className="toolsFilterHint">Platforms · hover for services</span>
+              <span className="toolsFilterHint">
+                {touchUi ? "Platforms · tap for services" : "Platforms · hover for services"}
+              </span>
             )}
           </div>
           <div
             className="toolsFilterList toolsFilterList--platformRow"
-            onMouseLeave={() => {
-              if (selectedTools.length === 0 && !projectLocked) setHoveredTool(null);
-            }}
+            onMouseLeave={
+              touchUi
+                ? undefined
+                : () => {
+                    if (selectedTools.length === 0 && !projectLocked) setHoveredTool(null);
+                  }
+            }
           >
             {platforms.map((tool) => (
-              <div
+              <PlatformFilterCluster
                 key={tool.id}
-                className={`platformCluster${tool.children?.length ? " has-services" : ""}`}
-              >
-                <TechIconButton
-                  tool={tool}
-                  tooltip={!tool.children?.length}
-                  isSelected={
-                    selectedTools.includes(tool.id) ||
-                    selectedTools.some((id) => getToolById(id)?.parentId === tool.id)
-                  }
-                  isPreview={
-                    !projectLocked && selectedTools.length === 0 && hoveredTool === tool.id
-                  }
-                  isRelated={isToolRelated(tool.id)}
-                  onToggle={toggleTool}
-                  onHover={(id) => {
-                    if (!projectLocked && selectedTools.length === 0) setHoveredTool(id);
-                  }}
-                />
-                {tool.children?.length > 0 && (
-                  <div className="platformServicesTooltip" role="tooltip">
-                    <span className="platformServicesTitle">{tool.label}</span>
-                    <div className="platformServicesList">
-                      {tool.children.map((child) => (
-                        <button
-                          key={child.id}
-                          type="button"
-                          className={`platformServiceChip ${selectedTools.includes(child.id) ? "is-selected" : ""} ${relatedTools.has(child.id) ? "is-related" : ""}`}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            toggleTool(child.id);
-                          }}
-                          aria-pressed={selectedTools.includes(child.id)}
-                        >
-                          {child.short || child.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+                tool={tool}
+                touchUi={touchUi}
+                isSelected={
+                  selectedTools.includes(tool.id) ||
+                  selectedTools.some((id) => getToolById(id)?.parentId === tool.id)
+                }
+                isPreview={
+                  !touchUi &&
+                  !projectLocked &&
+                  selectedTools.length === 0 &&
+                  hoveredTool === tool.id
+                }
+                isRelated={isToolRelated(tool.id)}
+                onToggle={toggleTool}
+                onHover={
+                  touchUi
+                    ? undefined
+                    : (id) => {
+                        if (!projectLocked && selectedTools.length === 0) setHoveredTool(id);
+                      }
+                }
+                selectedTools={selectedTools}
+                relatedTools={relatedTools}
+                toggleTool={toggleTool}
+              />
             ))}
           </div>
+        </div>
         </div>
       </div>
 
@@ -428,9 +703,13 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
           ) : (
             <div
               className="projectGroupList"
-              onMouseLeave={() => {
-                if (!lockedProjectId) setHoveredProjectId(null);
-              }}
+              onMouseLeave={
+                touchUi
+                  ? undefined
+                  : () => {
+                      if (!lockedProjectId) setHoveredProjectId(null);
+                    }
+              }
             >
               {groupedProjects.map((group) => (
                 <section key={group.id} className="projectGroup">
@@ -445,8 +724,8 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
                           id={`project-tile-${item.id}`}
                           type="button"
                           className={`projectTile ${isActive ? "is-active" : ""} ${isLocked ? "is-locked" : ""}`}
-                          onMouseEnter={() => setHoveredProjectId(item.id)}
-                          onFocus={() => setHoveredProjectId(item.id)}
+                          onMouseEnter={touchUi ? undefined : () => setHoveredProjectId(item.id)}
+                          onFocus={touchUi ? undefined : () => setHoveredProjectId(item.id)}
                           onClick={() =>
                             setLockedProjectId((current) => {
                               const next = current === item.id ? null : item.id;
@@ -567,7 +846,9 @@ function ProjectsSection({ focusProjectId = null, onFocusHandled }) {
               <p className="projectPreviewHint">
                 {lockedProjectId
                   ? "Click the tile again to deselect"
-                  : "Hover tiles to preview · click to select"}
+                  : touchUi
+                    ? "Tap a tile to select"
+                    : "Hover tiles to preview · click to select"}
               </p>
             </>
           ) : (

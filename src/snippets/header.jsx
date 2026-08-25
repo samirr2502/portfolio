@@ -1,3 +1,5 @@
+import { FaMoon, FaSun } from "react-icons/fa";
+
 const SECTIONS = [
   { id: "home", label: "Home" },
   { id: "experience", label: "Experience" },
@@ -38,8 +40,18 @@ function Header({ theme, toggleTheme, isDeck, activeSection, onSectionNav }) {
         </ul>
 
         <div className="labHeaderActions">
-          <button className="theme-toggle btnSm" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === "light" ? "Dark" : "Light"}
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+            title={theme === "light" ? "Dark mode" : "Light mode"}
+          >
+            {theme === "light" ? (
+              <FaMoon size={13} aria-hidden="true" />
+            ) : (
+              <FaSun size={13} aria-hidden="true" />
+            )}
           </button>
         </div>
       </nav>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { scrollDeckTo } from "./ScrollDeck";
 import ContactIconLinks from "./ContactIconLinks";
+import { CHAT_TRANSCRIPT_EVENT, loadChatTranscript } from "../services/chatService";
 
 const CYCLE_MS = 4200;
 
@@ -9,7 +10,12 @@ function HeroStage({ featured }) {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const [entered, setEntered] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState(0);
+  const [hasChatHistory, setHasChatHistory] = useState(
+    () => loadChatTranscript().length > 0
+  );
   const featureRef = useRef(null);
+  const trackRef = useRef(null);
   const active = featured[index] || featured[0];
 
   useEffect(() => {
@@ -19,6 +25,9 @@ function HeroStage({ featured }) {
 
   useEffect(() => {
     if (featured.length < 2) return undefined;
+
+    const mq = window.matchMedia("(max-width: 900px)");
+    if (mq.matches) return undefined;
 
     const timer = setInterval(() => {
       setVisible(false);
@@ -30,6 +39,34 @@ function HeroStage({ featured }) {
 
     return () => clearInterval(timer);
   }, [featured.length]);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return undefined;
+
+    const syncPanel = () => {
+      const width = track.clientWidth;
+      if (!width) return;
+      setMobilePanel(Math.min(1, Math.round(track.scrollLeft / width)));
+    };
+
+    syncPanel();
+    track.addEventListener("scroll", syncPanel, { passive: true });
+    window.addEventListener("resize", syncPanel);
+    return () => {
+      track.removeEventListener("scroll", syncPanel);
+      window.removeEventListener("resize", syncPanel);
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncChatHistory = () => {
+      setHasChatHistory(loadChatTranscript().length > 0);
+    };
+
+    window.addEventListener(CHAT_TRANSCRIPT_EVENT, syncChatHistory);
+    return () => window.removeEventListener(CHAT_TRANSCRIPT_EVENT, syncChatHistory);
+  }, []);
 
   useEffect(() => {
     const panel = featureRef.current;
@@ -65,8 +102,12 @@ function HeroStage({ featured }) {
     }, 220);
   };
 
+  const swipeHint =
+    mobilePanel === 0 ? "Slide for featured projects →" : "← Slide for info";
+
   return (
     <div className={`heroStage ${entered ? "is-entered" : ""}`}>
+      <div className="heroStageTrack" ref={trackRef}>
       <div className="heroCopy">
         <p className="heroKicker">01 — Home · Deployed systems · EC2</p>
         <h1 className="heroName" aria-label="Samir Rodriguez">
@@ -140,6 +181,15 @@ function HeroStage({ featured }) {
           ))}
         </div>
       </aside>
+      </div>
+
+      {!hasChatHistory && (
+        <p className="heroStageSwipeHint" aria-hidden="true">
+          <span className="heroStageSwipeHintText" key={mobilePanel}>
+            {swipeHint}
+          </span>
+        </p>
+      )}
     </div>
   );
 }

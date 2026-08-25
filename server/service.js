@@ -84,6 +84,37 @@ function suggestsDirectContact(text) {
   );
 }
 
+function validateChatRequest(req) {
+  const ip = clientIp(req);
+  const question = String(req.body?.question || "").trim();
+
+  if (!question) {
+    return { error: { status: 400, body: { error: "Ask a question about Samir first." } } };
+  }
+
+  if (question.length > CHAR_LIMIT) {
+    return {
+      error: {
+        status: 400,
+        body: { error: `Keep it under ${CHAR_LIMIT.toLocaleString()} characters.` },
+      },
+    };
+  }
+
+  const usage = readUsage(ip);
+  if (usage.count >= MESSAGE_LIMIT) {
+    return {
+      limited: { ...buildLimitReachedMessage(), ...usagePayload(ip) },
+    };
+  }
+
+  return { ip, question, usage };
+}
+
+function writeSse(res, event, data) {
+  res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+}
+
 let openaiClient = null;
 
 function getOpenAI() {
@@ -112,24 +143,85 @@ app.get("/api/chat/usage", (req, res) => {
   res.json(usagePayload(clientIp(req)));
 });
 
-app.post("/api/chat", async (req, res) => {
-  const ip = clientIp(req);
-  const question = String(req.body?.question || "").trim();
-
-  if (!question) {
-    return res.status(400).json({ error: "Ask a question about Samir first." });
+app.post("/api/chat/stream", async (req, res) => {
+  const parsed = validateChatRequest(req);
+  if (parsed.error) {
+    return res.status(parsed.error.status).json(parsed.error.body);
+  }
+  if (parsed.limited) {
+    return res.json(parsed.limited);
   }
 
-  if (question.length > CHAR_LIMIT) {
-    return res.status(400).json({
-      error: `Keep it under ${CHAR_LIMIT.toLocaleString()} characters.`,
+  const { ip, question, usage } = parsed;
+
+  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  if (typeof res.flushHeaders === "function") {
+    res.flushHeaders();
+  }
+
+  let answer = "";
+
+  try {
+    const openai = getOpenAI();
+    const stream = await openai.chat.completions.create({
+      model: OPENAI_MODEL,
+      temperature: 0.6,
+      max_tokens: 900,
+      stream: true,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: question },
+      ],
     });
+
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content || "";
+      if (!delta) continue;
+      answer += delta;
+      writeSse(res, "token", { delta });
+    }
+
+    const trimmed = answer.trim();
+    if (!trimmed) {
+      throw new Error("Empty response from OpenAI.");
+    }
+
+    const nextUsage = writeUsage(ip, usage.count + 1);
+    writeSse(res, "done", {
+      answer: trimmed,
+      suggestContact: suggestsDirectContact(trimmed),
+      used: nextUsage.count,
+      remaining: Math.max(0, MESSAGE_LIMIT - nextUsage.count),
+      limit: MESSAGE_LIMIT,
+    });
+    res.end();
+  } catch (err) {
+    console.error("[chat/stream]", err);
+    const message =
+      err?.message?.includes("OPENAI_API_KEY")
+        ? "Chat is not configured yet. Contact Samir directly."
+        : "Something went wrong reaching the AI service. Try again in a moment.";
+    if (!res.headersSent) {
+      return res.status(503).json({ error: message });
+    }
+    writeSse(res, "error", { error: message });
+    res.end();
+  }
+});
+
+app.post("/api/chat", async (req, res) => {
+  const parsed = validateChatRequest(req);
+  if (parsed.error) {
+    return res.status(parsed.error.status).json(parsed.error.body);
+  }
+  if (parsed.limited) {
+    return res.json(parsed.limited);
   }
 
-  const usage = readUsage(ip);
-  if (usage.count >= MESSAGE_LIMIT) {
-    return res.json({ ...buildLimitReachedMessage(), ...usagePayload(ip) });
-  }
+  const { ip, question, usage } = parsed;
 
   try {
     const openai = getOpenAI();

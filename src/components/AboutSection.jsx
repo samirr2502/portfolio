@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import about from "../../resources/aboutLists.json";
 import ContactIconLinks from "./ContactIconLinks";
 
@@ -8,6 +8,30 @@ const contact = about.find((item) => item.id === "contact");
 
 function AboutSection() {
   const [photoReady, setPhotoReady] = useState(Boolean(aboutMe?.photo));
+  const [mobilePanel, setMobilePanel] = useState(0);
+  const trackRef = useRef(null);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return undefined;
+
+    const syncPanel = () => {
+      const width = track.clientWidth;
+      if (!width) return;
+      setMobilePanel(Math.min(1, Math.round(track.scrollLeft / width)));
+    };
+
+    syncPanel();
+    track.addEventListener("scroll", syncPanel, { passive: true });
+    window.addEventListener("resize", syncPanel);
+    return () => {
+      track.removeEventListener("scroll", syncPanel);
+      window.removeEventListener("resize", syncPanel);
+    };
+  }, []);
+
+  const swipeHint =
+    mobilePanel === 0 ? "Slide for SR2 →" : "← Slide for about me";
 
   return (
     <div className="aboutStage">
@@ -38,20 +62,36 @@ function AboutSection() {
         )}
       </figure>
 
-      <div className="aboutPanels">
-        <article className="aboutPanel">
-          <h3>{aboutMe?.title || "Background"}</h3>
-          <p>{aboutMe?.info}</p>
-          {aboutMe?.education && (
-            <p className="aboutPanelMeta">{aboutMe.education}</p>
-          )}
-        </article>
+      <div className="aboutPanelsCarousel">
+        <div className="aboutPanelsTrack" ref={trackRef}>
+          <div className="aboutPanelSlide">
+            <article className="aboutPanel">
+              <div className="aboutPanelBody">
+                <h3>{aboutMe?.title || "Background"}</h3>
+                <p>{aboutMe?.info}</p>
+              </div>
+              {aboutMe?.education && (
+                <p className="aboutPanelMeta">{aboutMe.education}</p>
+              )}
+            </article>
+          </div>
 
-        <article className="aboutPanel">
-          <h3>{company?.title || "SR2"}</h3>
-          <p>{company?.info}</p>
-          {company?.info2 && <p>{company.info2}</p>}
-        </article>
+          <div className="aboutPanelSlide">
+            <article className="aboutPanel">
+              <div className="aboutPanelBody">
+                <h3>{company?.title || "SR2"}</h3>
+                <p>{company?.info}</p>
+                {company?.info2 && <p>{company.info2}</p>}
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <p className="aboutStageSwipeHint stageSwipeHint" aria-hidden="true">
+          <span className="aboutStageSwipeHintText stageSwipeHintText" key={mobilePanel}>
+            {swipeHint}
+          </span>
+        </p>
       </div>
 
       <footer className="aboutReach">

@@ -2,14 +2,16 @@
 import about from "../../resources/aboutLists.json"
 import AboutGroups from "../components//AboutGroups"
 
+const aboutMe = about.find((item) => item.id === "aboutme") || {};
+
 function About(){
 
     return (
         <>
     <span className="homeMessage">
      <h1>Hi, I'm Samir Rodriguez</h1>
-     <h3>Web Developer · Software Engineer · AI Automation</h3>
-     <span> <i className="icon-sm">Senior Computer Science Major at BYU-Provo</i></span>
+     <h3>{aboutMe.tagline || "Web Developer · Software Engineer · AI Automation"}</h3>
+     <span> <i className="icon-sm">{aboutMe.education}</i></span>
      </span>
      <div className="cardsGrid aboutGroups">
 
